@@ -1,0 +1,13 @@
+numpy
+matplotlib
+pandas
+tensorflow==2.3.0
+tensorflow-probability==0.11.1
+seaborn
+biopython
+gffutils
+jupyter
+scikit-learn
+statsmodels
+sqlalchemy
+pytest

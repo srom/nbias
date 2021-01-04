@@ -11,7 +11,7 @@ Compute tri-nucleotide bias for assemblies in data/sequences.
 #include "../assembly/assembly.cpp"
 #include "../fasta/fasta.cpp"
 #include "../dna/dna.cpp"
-#include "tri_count.cpp"
+#include "../count/tri_count.cpp"
 #include "csv.hpp"
 
 using namespace std;

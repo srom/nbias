@@ -1,4 +1,4 @@
-#include "../src/tri_bias/tri_count.cpp"
+#include "../src/count/tri_count.cpp"
 #define BOOST_TEST_MODULE "Tri count test"
 #include <boost/test/unit_test.hpp>
 

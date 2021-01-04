@@ -27,6 +27,8 @@ int main() {
 
 	cerr << "Processing " << assemblies.Size() << " assemblies" << endl;
 
+	const bool overlap = true;
+
 	vector<string> headers{"assembly_accession"};
 	for (auto codon : codons) {
 		headers.push_back(codon);
@@ -56,9 +58,9 @@ int main() {
 		vector<int> totalCounts(codons.size());
 		FastaRecord record{};
 		while (parser.Get(record)) {
-			auto counts = CountTriNucleotides(record.content);
+			auto counts = CountTriNucleotides(record.content, overlap);
 			ReverseComplement(record.content);
-			auto counts_rc = CountTriNucleotides(record.content);
+			auto counts_rc = CountTriNucleotides(record.content, overlap);
 			for (int k = 0; k < totalCounts.size(); ++k) {
 				totalCounts[k] += counts[k] + counts_rc[k];
 			}

@@ -23,11 +23,11 @@ const vector<string> codons = {
 	"TTA", "TTC", "TTG", "TTT",
 };
 
-int CountTriNucleotide(const string& content, const string& codon, const bool overlap) {
+int CountKmer(const string& content, const string& kmer, const bool overlap) {
 	int count = 0;
 	string::size_type pos = 0;
 	for (;;) {
-	    pos = content.find(codon, pos);
+	    pos = content.find(kmer, pos);
 	    if (pos == string::npos) {
 	        break;
 	    }
@@ -35,20 +35,36 @@ int CountTriNucleotide(const string& content, const string& codon, const bool ov
 	    if (overlap) {
 	    	++pos;
 	    } else {
-	    	pos += codon.size();
+	    	pos += kmer.size();
 	    }
 	}
 	return count;
 }
 
-vector<int> CountTriNucleotides(const string& content, const bool overlap) {
+vector<int> CountTriNucleotidesAsync(const string& content, const bool overlap) {
 	vector<future<int>> futures;
-	for (auto codon : codons) {
-		futures.push_back(async(CountTriNucleotide, content, codon, overlap));
+	for (auto& codon : codons) {
+		futures.push_back(async(CountKmer, content, codon, overlap));
 	}
 	vector<int> counts;
 	for (auto& f : futures) {
 		counts.push_back(f.get());
 	}
 	return counts;
+}
+
+vector<int> CountTriNucleotidesSequential(const string& content, const bool overlap) {
+	vector<int> counts;
+	for (auto& codon : codons) {
+		counts.push_back(CountKmer(content, codon, overlap));
+	}
+	return counts;
+}
+
+vector<int> CountTriNucleotides(const string& content, const bool overlap, const bool use_async) {
+	if (use_async) {
+		return CountTriNucleotidesAsync(content, overlap);
+	} else {
+		return CountTriNucleotidesSequential(content, overlap);
+	}
 }

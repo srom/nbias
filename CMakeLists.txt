@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 include_directories(external)
 
 # Boost library
-find_package(Boost 1.75 COMPONENTS program_options iostreams unit_test_framework REQUIRED)
+find_package(Boost 1.75 COMPONENTS program_options iostreams filesystem unit_test_framework REQUIRED)
 
 # Executables
 file(GLOB tri_bias_SOURCES "src/tri_bias/tri_bias.cpp")

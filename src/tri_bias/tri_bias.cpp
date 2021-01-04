@@ -1,78 +1,91 @@
 /*
 Compute tri-nucleotide bias for assemblies in data/sequences. 
 */
-#include <fstream>
 #include <iostream>
 #include <string>
-#include <chrono>
-#include <numeric>
-#include <boost/iostreams/filtering_streambuf.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
-#include "../assembly/assembly.cpp"
-#include "../fasta/fasta.cpp"
-#include "../dna/dna.cpp"
-#include "../count/tri_count.cpp"
-#include "csv.hpp"
+#include <boost/program_options.hpp>
+#include "run_count.cpp"
 
 using namespace std;
-using namespace std::chrono;
-using namespace csv;
+namespace po = boost::program_options;
 
-int main() {
-	string dataFolder = "../data/";
-	string sequencesFolder = dataFolder + "sequences/";
-	string assembliesPath = dataFolder + "assemblies.csv";
+int main(int ac, char* av[]) {
+	try {
+		po::options_description desc(
+			"Compute tri-nucleotide distribution (3-mer) of sequences from data/sequences"
+		);
+		desc.add_options()
+            (
+            	"help,h", 
+            	"Print help message"
+            )
+            (
+            	"level", 
+            	po::value<string>()->default_value(""), 
+            	"One of \"genome\" (compute genome-wide), "
+            	"\"genes\" (compute on genes only), "
+            	"\"cds\" (compute distribution for each individual CDS)."
+            )
+            (
+            	"overlap", 
+            	po::bool_switch(), 
+            	"Count kmers with overlap"
+            	"(i.e. consider all reading frames)"
+            )
+            (
+            	"n_threads", 
+            	po::value<int>()->default_value(4),
+            	"Number of threads to use. Defaults to 4."
+            )
+        ;
 
-	Assemblies assemblies(assembliesPath);
+        po::variables_map vm;
+        po::store(po::parse_command_line(ac, av, desc), vm);
+        po::notify(vm);
 
-	cerr << "Processing " << assemblies.Size() << " assemblies" << endl;
+        if (vm.count("help")) {
+            cerr << desc << endl;
+            return 0;
+        }
 
-	const bool overlap = true;
+        auto level = vm["level"].as<string>();
+        if (level == "genome" || level == "genes" || level == "cds") {
+        	cerr << "Level: " << level << endl;
+        } else if (level.empty()) {
+        	cerr << "Error: parameter \"level\" not set.";
+            cerr << " See --help for usage." << endl;
+            return 1;
+        } else {
+        	cerr << "Error: unknown value for parameter \"level\": \"" << level;
+        	cerr << "\". See --help for usage." << endl;
+        	return 1;
+        }
 
-	vector<string> headers{"assembly_accession"};
-	for (auto codon : codons) {
-		headers.push_back(codon);
+        const bool overlap = vm["overlap"].as<bool>();
+        if (overlap) {
+            cerr << "Overlap: true" << endl;
+        } else {
+            cerr << "Overlap: false" << endl;
+        }
+
+        const int n_threads = vm["n_threads"].as<int>();
+        cerr << "Threads: " << n_threads << endl;
+
+        if (level == "genome") {
+        	run_assembly_count(true, overlap, n_threads);
+        } else if (level == "genes") {
+        	run_assembly_count(false, overlap, n_threads);
+        } else if (level == "cds") {
+        	run_cds_count(overlap, n_threads);
+        }
 	}
-
-	ofstream of("../data/tri_bias.csv");
-	auto writer = make_csv_writer(of);
-	writer << headers;
-
-	int i = 0;
-	auto start = system_clock::now();
-	for (auto accession : assemblies.GetIds()) {
-		if (i == 0 || (i+1) % 100 == 0) {
-			auto tp = system_clock::now();
-			cerr << "Processing assembly " << i + 1 << " / " << assemblies.Size();
-			cerr << " (elapsed: " << duration_cast<seconds>(tp - start).count() << " seconds)" << endl;
-		}
-		string genome_path = sequencesFolder + accession + "/" + accession + "_genomic.fna.gz";
-		ifstream input_file(genome_path, ios_base::in | ios_base::binary);
-		boost::iostreams::filtering_streambuf<boost::iostreams::input> inbuf;
-		inbuf.push(boost::iostreams::gzip_decompressor());
-		inbuf.push(input_file);
-		istream instream(&inbuf);
-
-		FastaParser parser(instream);
-
-		vector<int> totalCounts(codons.size());
-		FastaRecord record{};
-		while (parser.Get(record)) {
-			auto counts = CountTriNucleotides(record.content, overlap);
-			ReverseComplement(record.content);
-			auto counts_rc = CountTriNucleotides(record.content, overlap);
-			for (int k = 0; k < totalCounts.size(); ++k) {
-				totalCounts[k] += counts[k] + counts_rc[k];
-			}
-		}
-		int sum = accumulate(totalCounts.begin(), totalCounts.end(), 0);
-		vector<string> row{accession};
-		for (auto count : totalCounts) {
-			row.push_back(to_string((double) count / (double) sum));
-		}
-		writer << row;
-		++i;
+	catch(exception& e) {
+		cerr << "Exception raised: " << e.what() << endl;
+		return 1;
 	}
-	auto tp = system_clock::now();
-	cerr << "DONE (elapsed: " << duration_cast<seconds>(tp - start).count() << " seconds)" << endl;
+	catch(...) {
+		cerr << "Unknown exception raised" << endl;
+		return 1;
+	}
+	return 0;
 }

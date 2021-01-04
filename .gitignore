@@ -1,17 +1,8 @@
 data/
-saved_models/
-saved_models_*/
-hyperparameters/
-hyperband_logs/
 report/
+build/
 
-.DS_STORE
-
-.idea
-.iml
-.sublime*
-
-## Node
+# Node
 logs
 *.log
 npm-debug.log*
@@ -26,24 +17,46 @@ node_modules
 .npm
 .node_repl_history
 
-build
+# Prerequisites
+*.d
 
-# Compiled source #
-###################
-*.class
-*.dll
-*.exe
+# Compiled Object files
+*.slo
+*.lo
 *.o
-*.so
+*.obj
+*.class
 
-# Logs and databases #
-######################
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Logs and database
 *.log
 *.sql
 *.sqlite
 
-# OS generated files #
-######################
+# OS generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -53,26 +66,26 @@ Icon?
 ehthumbs.db
 Thumbs.db
 
-# Python #
-##########
+# Python
 *.egg
 *.pyc
 env/
 dist/
 cma_es.egg-info/
 
-# Misc #
-########
-# text edit temp files
+# Misc
 *~
 .idea
-# Sublime text project files
-*.sublime-workspace
+.iml
+.sublime*
 
+# Tensorflow
 checkpoints/
 .ipynb_checkpoints
-
 summary_log/
-
 checkpoint
 *.ckpt.*
+saved_models/
+saved_models_*/
+hyperparameters/
+hyperband_logs/

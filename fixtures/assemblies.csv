@@ -1,0 +1,11 @@
+assembly_accession,taxid,species_taxid,organism_name,domain,phylum,class,order,family,genus,species,strain,assembly_level
+GCA_000010525.1,438753,7,Azorhizobium caulinodans ORS 571,Bacteria,Proteobacteria,Alphaproteobacteria,Rhizobiales,Xanthobacteraceae,Azorhizobium,Azorhizobium caulinodans,Azorhizobium caulinodans ORS 571,Complete Genome
+GCA_000218545.1,593907,11,Cellulomonas gilvus ATCC 13127,Bacteria,Actinobacteria,Actinobacteria,Micrococcales,Cellulomonadaceae,Cellulomonas,Cellulomonas gilvus,Cellulomonas gilvus ATCC 13127,Complete Genome
+GCA_000020965.1,309799,14,Dictyoglomus thermophilum H-6-12,Bacteria,Dictyoglomi,Dictyoglomia,Dictyoglomales,Dictyoglomaceae,Dictyoglomus,Dictyoglomus thermophilum,Dictyoglomus thermophilum H-6-12,Complete Genome
+GCA_000012885.1,338963,19,Pelobacter carbinolicus DSM 2380,Bacteria,Proteobacteria,Deltaproteobacteria,Desulfuromonadales,Desulfuromonadaceae,Pelobacter,Pelobacter carbinolicus,Pelobacter carbinolicus DSM 2380,Complete Genome
+GCA_001735525.1,23,23,Shewanella colwelliana,Bacteria,Proteobacteria,Gammaproteobacteria,Alteromonadales,Shewanellaceae,Shewanella,,Shewanella colwelliana,Scaffold
+GCA_000016585.1,319224,24,Shewanella putrefaciens CN-32,Bacteria,Proteobacteria,Gammaproteobacteria,Alteromonadales,Shewanellaceae,Shewanella,Shewanella putrefaciens,Shewanella putrefaciens CN-32,Complete Genome
+GCA_002222655.1,63,63,Vitreoscilla filiformis,Bacteria,Proteobacteria,Betaproteobacteria,Neisseriales,Neisseriaceae,Vitreoscilla,,Vitreoscilla filiformis,Complete Genome
+GCA_000163775.2,641147,72,Simonsiella muelleri ATCC 29453,Bacteria,Proteobacteria,Betaproteobacteria,Neisseriales,Neisseriaceae,Simonsiella,Simonsiella muelleri,Simonsiella muelleri ATCC 29453,Scaffold
+GCA_002928395.1,82,82,Hyphomicrobium sp.,Bacteria,Proteobacteria,Alphaproteobacteria,Rhizobiales,Hyphomicrobiaceae,Hyphomicrobium,,Hyphomicrobium sp.,Contig
+GCA_003250435.1,86,86,Hyphomonas jannaschiana,Bacteria,Proteobacteria,Alphaproteobacteria,Rhodobacterales,Hyphomonadaceae,Hyphomonas,,Hyphomonas jannaschiana,Contig

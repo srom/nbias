@@ -11,6 +11,10 @@ include_directories(external)
 # Boost library
 find_package(Boost 1.75 COMPONENTS program_options iostreams filesystem unit_test_framework REQUIRED)
 
+# XTensor
+set(XTENSOR_USE_XSIMD 1)
+find_package(xtensor REQUIRED)
+
 # Executables
 file(GLOB tri_bias_SOURCES "src/tri_bias/tri_bias.cpp")
 add_executable(tri_bias ${tri_bias_SOURCES})
@@ -32,3 +36,8 @@ target_link_libraries(test_tri_count ${Boost_LIBRARIES})
 file(GLOB test_dna_SOURCES "test/dna/*.cpp")
 add_executable(test_dna ${test_dna_SOURCES})
 target_link_libraries(test_dna ${Boost_LIBRARIES})
+
+file(GLOB test_distance_SOURCES "test/distance/*.cpp")
+add_executable(test_distance ${test_distance_SOURCES})
+target_link_libraries(test_distance ${Boost_LIBRARIES} xtensor)
+target_compile_options(test_distance PRIVATE -march=native)

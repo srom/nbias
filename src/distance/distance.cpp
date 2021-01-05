@@ -22,6 +22,19 @@ void kl_divergence_argument_check(
 	if (find_if(q.begin(), q.end(), checkNegEq) != q.end()) {
 		throw runtime_error("KL divergence: element in q is <= 0");
 	}
+	double tol = 0.001;
+	size_t expected = p.shape()[0];
+	if (p.shape().size() == 1) {
+		expected = 1;
+	}
+	auto s1 = xt::sum(p)[0];
+	if (fabs(s1 - expected) > tol) {
+		throw runtime_error("KL divergence: values in p do not sum to 1");
+	}
+	auto s2 = xt::sum(q)[0];
+	if (fabs(s2 - expected) > tol) {
+		throw runtime_error("KL divergence: values in q do not sum to 1");
+	}
 }
 
 double _kl_divergence_double_ec(
@@ -75,6 +88,19 @@ void jensen_shannon_distance_argument_check(
 	}
 	if (find_if(q.begin(), q.end(), checkNeg) != q.end()) {
 		throw runtime_error("Jensen-Shannon distance: element in q is < 0");
+	}
+	double tol = 0.001;
+	size_t expected = p.shape()[0];
+	if (p.shape().size() == 1) {
+		expected = 1;
+	}
+	auto s1 = xt::sum(p)[0];
+	if (fabs(s1 - expected) > tol) {
+		throw runtime_error("Jensen-Shannon distance: values in p do not sum to 1");
+	}
+	auto s2 = xt::sum(q)[0];
+	if (fabs(s2 - expected) > tol) {
+		throw runtime_error("Jensen-Shannon distance: values in q do not sum to 1");
 	}
 }
 

@@ -75,6 +75,26 @@ BOOST_AUTO_TEST_CASE(TestKLDivergence, * utf::tolerance(0.00001))
 	
 	BOOST_CHECK_THROW(kl_divergence(y, z, 0);, runtime_error);
 
+	// All values are zero: throw
+	xt::xarray<double> pzero = {0.0, 0.0};
+
+	BOOST_CHECK_THROW(kl_divergence(pzero, q), runtime_error);
+	BOOST_CHECK_THROW(kl_divergence(q, pzero), runtime_error);
+
+	xt::xarray<double> p1zero = {{0.0, 0.0}, {0.5, 0.5}};
+
+	BOOST_CHECK_THROW(kl_divergence(p1zero, q1, 1), runtime_error);
+
+	// Values do not sum to 1: throw
+	xt::xarray<double> p_not_one = {0.33, 0.1};
+	
+	BOOST_CHECK_THROW(kl_divergence(p_not_one, q), runtime_error);
+	BOOST_CHECK_THROW(kl_divergence(q, p_not_one), runtime_error);
+
+	xt::xarray<double> p_not_one_1 = {{0.33, 0.1}, {0.5, 0.5}};
+	
+	BOOST_CHECK_THROW(kl_divergence(p_not_one_1, q1, 1), runtime_error);
+
 	// Shape mismatch exception
 	BOOST_CHECK_THROW(kl_divergence(p, q0);, runtime_error);
 	BOOST_CHECK_THROW(kl_divergence(p, q0, 0);, runtime_error);
@@ -118,6 +138,26 @@ BOOST_AUTO_TEST_CASE(TestJensenShannonDistance, * utf::tolerance(0.00001)) {
 
 	BOOST_TEST(jensen_shannon_distance(a, b) == 0.4645014);
 	BOOST_TEST(jensen_shannon_distance(b, a) == 0.4645014);
+
+	// All values are zero: throw
+	xt::xarray<double> pzero = {0.0, 0.0};
+
+	BOOST_CHECK_THROW(jensen_shannon_distance(pzero, q), runtime_error);
+	BOOST_CHECK_THROW(jensen_shannon_distance(q, pzero), runtime_error);
+
+	xt::xarray<double> p1zero = {{0.0, 0.0}, {0.5, 0.5}};
+
+	BOOST_CHECK_THROW(jensen_shannon_distance(p1zero, q1, 1), runtime_error);
+
+	// Values do not sum to 1: throw
+	xt::xarray<double> p_not_one = {0.33, 0.1};
+	
+	BOOST_CHECK_THROW(jensen_shannon_distance(p_not_one, q), runtime_error);
+	BOOST_CHECK_THROW(jensen_shannon_distance(q, p_not_one), runtime_error);
+
+	xt::xarray<double> p_not_one_1 = {{0.33, 0.1}, {0.5, 0.5}};
+	
+	BOOST_CHECK_THROW(jensen_shannon_distance(p_not_one_1, q1, 1), runtime_error);
 
 	// Negative number: jensen_shannon_distance should throw an exception.
 	xt::xarray<double> d = {1.0, -0.00001};

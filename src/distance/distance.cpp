@@ -14,12 +14,12 @@ void kl_divergence_argument_check(
 	if (p.shape() != q.shape()) {
 		throw runtime_error("KL divergence: shape mismatch");
 	}
-	auto checkNeg = [](auto&& a) { return a <= 0; };
+	auto checkNeg = [](auto&& a) { return a < 0; };
 	if (find_if(p.begin(), p.end(), checkNeg) != p.end()) {
-		throw runtime_error("KL divergence: element in p is <= 0");
+		throw runtime_error("KL divergence: element in p is < 0");
 	}
 	if (find_if(q.begin(), q.end(), checkNeg) != q.end()) {
-		throw runtime_error("KL divergence: element in q is <= 0");
+		throw runtime_error("KL divergence: element in q is < 0");
 	}
 }
 
@@ -31,7 +31,7 @@ double _kl_divergence_double_ec(
 	if (error_check) {
 		kl_divergence_argument_check(p, q);
 	}
-	return xt::sum(p * (xt::log(p) - xt::log(q)))[0];
+	return xt::nansum(p * (xt::log(p) - xt::log(q)))[0];
 }
 
 double kl_divergence(
@@ -50,7 +50,7 @@ xt::xarray<double> _kl_divergence_array_ec(
 	if (error_check) {
 		kl_divergence_argument_check(p, q);
 	}
-	return xt::eval(xt::sum(p * (xt::log(p) - xt::log(q)), move(axis)));
+	return xt::eval(xt::nansum(p * (xt::log(p) - xt::log(q)), move(axis)));
 }
 
 xt::xarray<double> kl_divergence(

@@ -1,3 +1,6 @@
+/*
+Implementation of KL divergence and Jensen-Shannon distance.
+*/
 #include <iostream>
 #include <algorithm>
 #include <cmath>

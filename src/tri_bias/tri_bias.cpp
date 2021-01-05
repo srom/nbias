@@ -12,7 +12,7 @@ namespace po = boost::program_options;
 int main(int ac, char* av[]) {
 	try {
 		po::options_description desc(
-			"Compute tri-nucleotide distribution (3-mer) of sequences from data/sequences"
+			"Compute tri-nucleotide distribution of sequences in data/sequences"
 		);
 		desc.add_options()
             (
@@ -79,11 +79,11 @@ int main(int ac, char* av[]) {
         	run_cds_count(overlap, n_threads);
         }
 	}
-	catch(exception& e) {
+	catch (exception& e) {
 		cerr << "Exception raised: " << e.what() << endl;
 		return 1;
 	}
-	catch(...) {
+	catch (...) {
 		cerr << "Unknown exception raised" << endl;
 		return 1;
 	}

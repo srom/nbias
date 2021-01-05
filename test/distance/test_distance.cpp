@@ -18,6 +18,10 @@ BOOST_AUTO_TEST_CASE(TestKLDivergence, * utf::tolerance(0.00001))
 
 	BOOST_TEST(v == 0.5108256);
 
+	double v2 = kl_divergence(q, p);
+
+	BOOST_TEST(v2 == 0.3680642);
+
 	xt::xarray<double> p1 = {
 		{0.5, 0.5},
 		{(double) 9 / 10, (double) 1 / 10}

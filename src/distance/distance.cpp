@@ -14,7 +14,7 @@ void kl_divergence_argument_check(
 	if (p.shape() != q.shape()) {
 		throw runtime_error("KL divergence: shape mismatch");
 	}
-	auto checkNeg = [](auto&& a) { return a < 0; };
+	auto checkNeg = [](auto&& a) { return a < (double) 0; };
 	if (find_if(p.begin(), p.end(), checkNeg) != p.end()) {
 		throw runtime_error("KL divergence: element in p is < 0");
 	}

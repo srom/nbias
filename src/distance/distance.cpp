@@ -18,8 +18,9 @@ void kl_divergence_argument_check(
 	if (find_if(p.begin(), p.end(), checkNeg) != p.end()) {
 		throw runtime_error("KL divergence: element in p is < 0");
 	}
-	if (find_if(q.begin(), q.end(), checkNeg) != q.end()) {
-		throw runtime_error("KL divergence: element in q is < 0");
+	auto checkNegEq = [](auto&& a) { return a <= (double) 0; };
+	if (find_if(q.begin(), q.end(), checkNegEq) != q.end()) {
+		throw runtime_error("KL divergence: element in q is <= 0");
 	}
 }
 
@@ -31,7 +32,7 @@ double _kl_divergence_double_ec(
 	if (error_check) {
 		kl_divergence_argument_check(p, q);
 	}
-	return xt::nansum(p * (xt::log(p) - xt::log(q)))[0];
+	return xt::sum(p * (xt::nan_to_num(xt::log(p)) - xt::log(q)))[0];
 }
 
 double kl_divergence(
@@ -50,7 +51,7 @@ xt::xarray<double> _kl_divergence_array_ec(
 	if (error_check) {
 		kl_divergence_argument_check(p, q);
 	}
-	return xt::eval(xt::nansum(p * (xt::log(p) - xt::log(q)), move(axis)));
+	return xt::eval(xt::sum(p * (xt::nan_to_num(xt::log(p)) - xt::log(q)), move(axis)));
 }
 
 xt::xarray<double> kl_divergence(
@@ -61,11 +62,27 @@ xt::xarray<double> kl_divergence(
 	return _kl_divergence_array_ec(p, q, axis, true);
 }
 
+void jensen_shannon_distance_argument_check(
+	const xt::xarray<double>& p, 
+	const xt::xarray<double>& q
+) {
+	if (p.shape() != q.shape()) {
+		throw runtime_error("Jensen-Shannon distance: shape mismatch");
+	}
+	auto checkNeg = [](auto&& a) { return a < (double) 0; };
+	if (find_if(p.begin(), p.end(), checkNeg) != p.end()) {
+		throw runtime_error("Jensen-Shannon distance: element in p is < 0");
+	}
+	if (find_if(q.begin(), q.end(), checkNeg) != q.end()) {
+		throw runtime_error("Jensen-Shannon distance: element in q is < 0");
+	}
+}
+
 double jensen_shannon_distance(
 	const xt::xarray<double>& p, 
 	const xt::xarray<double>& q
 ) {
-	kl_divergence_argument_check(p, q);
+	jensen_shannon_distance_argument_check(p, q);
 	xt::xarray<double> m = (p + q) / 2;
 	double divergence = (
 		_kl_divergence_double_ec(p, m, false) + 
@@ -79,7 +96,7 @@ xt::xarray<double> jensen_shannon_distance(
 	const xt::xarray<double>& q,
 	const size_t axis
 ) {
-	kl_divergence_argument_check(p, q);
+	jensen_shannon_distance_argument_check(p, q);
 	xt::xarray<double> m = (p + q) / 2;
 	return xt::eval(
 		xt::sqrt(

@@ -55,6 +55,9 @@ BOOST_AUTO_TEST_CASE(TestKLDivergence, * utf::tolerance(0.00001))
 
 	BOOST_TEST(kl_divergence(a, b) == 0.6931472);
 
+	// Throw: values in q are not allowed to be zero
+	BOOST_CHECK_THROW(kl_divergence(b, a), runtime_error);
+
 	// Negative number: kl_divergence should throw an exception.
 	xt::xarray<double> d = {1.0, -0.00001};
 	xt::xarray<double> e = {0.5, 0.5};
@@ -114,6 +117,7 @@ BOOST_AUTO_TEST_CASE(TestJensenShannonDistance, * utf::tolerance(0.00001)) {
 	xt::xarray<double> b = {0.5, 0.5};
 
 	BOOST_TEST(jensen_shannon_distance(a, b) == 0.4645014);
+	BOOST_TEST(jensen_shannon_distance(b, a) == 0.4645014);
 
 	// Negative number: jensen_shannon_distance should throw an exception.
 	xt::xarray<double> d = {1.0, -0.00001};

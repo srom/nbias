@@ -6,7 +6,7 @@ and its genes' tri-nucleotide distributions.
 #include <string>
 #include <boost/program_options.hpp>
 #include <xtensor/xarray.hpp>
-#include "distance/distance.cpp"
+#include "compute_distance_task.cpp"
 
 using namespace std;
 namespace po = boost::program_options;
@@ -38,15 +38,12 @@ int main(int ac, char* av[]) {
             return 0;
         }
 
+        cerr << "Computing Jensen-Shannon distance" << endl;
+
         const int n_threads = vm["n_threads"].as<int>();
         cerr << "Threads: " << n_threads << endl;
 
-        xt::xarray<double> p = {0.5, 0.5};
-        xt::xarray<double> q = {(double) 9 / 10, (double) 1 / 10};
-
-        double v = kl_divergence(p, q);
-
-        cerr << v << endl;
+        compute_distance(n_threads);
 	}
 	catch (exception& e) {
 		cerr << "Exception raised: " << e.what() << endl;

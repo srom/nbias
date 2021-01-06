@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(nbias)
+project(nbias CXX)
 
 # Compile with C++17
 set(CMAKE_CXX_STANDARD 17)
@@ -46,3 +46,8 @@ file(GLOB test_distance_SOURCES "test/distance/*.cpp")
 add_executable(test_distance ${test_distance_SOURCES})
 target_link_libraries(test_distance ${Boost_LIBRARIES} xtensor)
 target_compile_options(test_distance PRIVATE -march=native)
+
+file(GLOB test_distribution_SOURCES "test/distribution/*.cpp")
+add_executable(test_distribution ${test_distribution_SOURCES})
+target_link_libraries(test_distribution ${Boost_LIBRARIES} xtensor)
+target_compile_options(test_distribution PRIVATE -march=native)

@@ -2,6 +2,7 @@
 #include <cmath>
 #include <xtensor/xarray.hpp>
 #include <xtensor/xmath.hpp>
+#include <xtensor/xview.hpp>
 #include "../src/distance/distance.cpp"
 #define BOOST_TEST_MODULE "Distance test"
 #include <boost/test/unit_test.hpp>
@@ -169,4 +170,16 @@ BOOST_AUTO_TEST_CASE(TestJensenShannonDistance, * utf::tolerance(0.00001)) {
 	BOOST_CHECK_THROW(jensen_shannon_distance(p, q1);, runtime_error);
 	BOOST_CHECK_THROW(jensen_shannon_distance(p, q1, 0);, runtime_error);
 	BOOST_CHECK_THROW(jensen_shannon_distance(p, q1, 1);, runtime_error);
+}
+
+BOOST_AUTO_TEST_CASE(TestDuplicateRow, * utf::tolerance(0.00001)) {
+	xt::xarray<double> a = {0.5, 0.5};
+
+	auto b = duplicate_rows(a, 10);
+
+	BOOST_TEST(b.shape()[0] == 10);
+	BOOST_TEST(xt::row(b, 0)[0] == a[0]);
+	BOOST_TEST(xt::row(b, 0)[1] == a[1]);
+	BOOST_TEST(xt::row(b, 5)[0] == a[0]);
+	BOOST_TEST(xt::row(b, 5)[1] == a[1]);
 }

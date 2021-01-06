@@ -4,7 +4,7 @@ Compute tri-nucleotide bias for assemblies in data/sequences.
 #include <iostream>
 #include <string>
 #include <boost/program_options.hpp>
-#include "run_count.cpp"
+#include "tri_bias_task.cpp"
 
 using namespace std;
 namespace po = boost::program_options;
@@ -20,22 +20,22 @@ int main(int ac, char* av[]) {
             	"Print help message"
             )
             (
-            	"level", 
+            	"level,l", 
             	po::value<string>()->default_value(""), 
             	"One of \"genome\" (compute genome-wide), "
             	"\"genes\" (compute on genes only), "
             	"\"cds\" (compute distribution for each individual CDS)."
             )
             (
-            	"overlap", 
+            	"overlap,o", 
             	po::bool_switch(), 
             	"Count kmers with overlap"
             	"(i.e. consider all reading frames)"
             )
             (
-            	"n_threads", 
+            	"n_threads,t", 
             	po::value<int>()->default_value(4),
-            	"Number of threads to use. Defaults to 4."
+            	"Number of threads to use."
             )
         ;
 

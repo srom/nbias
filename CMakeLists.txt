@@ -20,6 +20,11 @@ file(GLOB tri_bias_SOURCES "src/tri_bias.cpp")
 add_executable(tri_bias ${tri_bias_SOURCES})
 target_link_libraries(tri_bias ${Boost_LIBRARIES})
 
+file(GLOB compute_distance_SOURCES "src/compute_distance.cpp")
+add_executable(compute_distance ${compute_distance_SOURCES})
+target_link_libraries(compute_distance ${Boost_LIBRARIES} xtensor)
+target_compile_options(compute_distance PRIVATE -march=native)
+
 # Test Executables
 file(GLOB test_fasta_SOURCES "test/fasta/*.cpp")
 add_executable(test_fasta ${test_fasta_SOURCES})

@@ -9,11 +9,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
-#include "../assembly/assembly.cpp"
-#include "../fasta/fasta.cpp"
-#include "../dna/dna.cpp"
-#include "../count/tri_count.cpp"
 #include "csv.hpp"
+#include "assembly/assembly.cpp"
+#include "fasta/fasta.cpp"
+#include "dna/dna.cpp"
+#include "count/tri_count.cpp"
 
 using namespace std;
 using namespace std::chrono;

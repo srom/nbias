@@ -16,7 +16,7 @@ set(XTENSOR_USE_XSIMD 1)
 find_package(xtensor REQUIRED)
 
 # Executables
-file(GLOB tri_bias_SOURCES "src/tri_bias/tri_bias.cpp")
+file(GLOB tri_bias_SOURCES "src/tri_bias.cpp")
 add_executable(tri_bias ${tri_bias_SOURCES})
 target_link_libraries(tri_bias ${Boost_LIBRARIES})
 

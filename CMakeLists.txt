@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0.0)
 
 project(nbias CXX)
 
+enable_testing()
+
 # Compile with C++17
 set(CMAKE_CXX_STANDARD 17)
 
@@ -29,25 +31,31 @@ target_compile_options(compute_distance PRIVATE -march=native)
 file(GLOB test_fasta_SOURCES "test/fasta/*.cpp")
 add_executable(test_fasta ${test_fasta_SOURCES})
 target_link_libraries(test_fasta ${Boost_LIBRARIES})
+add_test(NAME fasta COMMAND test_fasta)
 
 file(GLOB test_assembly_SOURCES "test/assembly/*.cpp")
 add_executable(test_assembly ${test_assembly_SOURCES})
 target_link_libraries(test_assembly ${Boost_LIBRARIES})
+add_test(NAME assembly COMMAND test_assembly)
 
 file(GLOB test_tri_count_SOURCES "test/count/*.cpp")
 add_executable(test_tri_count ${test_tri_count_SOURCES})
 target_link_libraries(test_tri_count ${Boost_LIBRARIES})
+add_test(NAME tri_count COMMAND test_tri_count)
 
 file(GLOB test_dna_SOURCES "test/dna/*.cpp")
 add_executable(test_dna ${test_dna_SOURCES})
 target_link_libraries(test_dna ${Boost_LIBRARIES})
+add_test(NAME dna COMMAND test_dna)
 
 file(GLOB test_distance_SOURCES "test/distance/*.cpp")
 add_executable(test_distance ${test_distance_SOURCES})
 target_link_libraries(test_distance ${Boost_LIBRARIES} xtensor)
 target_compile_options(test_distance PRIVATE -march=native)
+add_test(NAME distance COMMAND test_distance)
 
 file(GLOB test_distribution_SOURCES "test/distribution/*.cpp")
 add_executable(test_distribution ${test_distribution_SOURCES})
 target_link_libraries(test_distribution ${Boost_LIBRARIES} xtensor)
 target_compile_options(test_distribution PRIVATE -march=native)
+add_test(NAME distribution COMMAND test_distribution)

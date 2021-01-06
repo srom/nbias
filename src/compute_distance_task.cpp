@@ -41,7 +41,7 @@ bool task_compute_distance(const int task_nb, const vector<string>& assembly_ids
 		);
 		string outputPath = (
 			sequencesFolder + accession + "/" + 
-			accession + "tri_nucleotide_distance_to_mean.csv"
+			accession + "_tri_nucleotide_distance_to_mean.csv"
 		);
 
 		ifstream cds_dist_f(cds_dist_path, ios_base::in | ios_base::binary);

@@ -5,7 +5,6 @@ and its genes' tri-nucleotide distributions.
 #include <iostream>
 #include <string>
 #include <boost/program_options.hpp>
-#include <xtensor/xarray.hpp>
 #include "compute_distance_task.cpp"
 
 using namespace std;

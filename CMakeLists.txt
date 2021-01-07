@@ -27,6 +27,11 @@ add_executable(compute_distance ${compute_distance_SOURCES})
 target_link_libraries(compute_distance ${Boost_LIBRARIES} xtensor)
 target_compile_options(compute_distance PRIVATE -march=native)
 
+file(GLOB domain_probability_SOURCES "src/domain_probability.cpp")
+add_executable(domain_probability ${domain_probability_SOURCES})
+target_link_libraries(domain_probability ${Boost_LIBRARIES} xtensor)
+target_compile_options(domain_probability PRIVATE -march=native)
+
 # Test Executables
 file(GLOB test_fasta_SOURCES "test/fasta/*.cpp")
 add_executable(test_fasta ${test_fasta_SOURCES})
@@ -59,3 +64,9 @@ add_executable(test_distribution ${test_distribution_SOURCES})
 target_link_libraries(test_distribution ${Boost_LIBRARIES} xtensor)
 target_compile_options(test_distribution PRIVATE -march=native)
 add_test(NAME distribution COMMAND test_distribution)
+
+file(GLOB test_probability_SOURCES "test/probability/*.cpp")
+add_executable(test_probability ${test_probability_SOURCES})
+target_link_libraries(test_probability ${Boost_LIBRARIES} xtensor)
+target_compile_options(test_probability PRIVATE -march=native)
+add_test(NAME probability COMMAND test_probability)

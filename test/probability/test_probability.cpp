@@ -1,7 +1,10 @@
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include <xtensor/xarray.hpp>
+#include <xtensor/xrandom.hpp>
 #include "../src/probability/probability.cpp"
+#include "../src/probability/probability_util.cpp"
 #define BOOST_TEST_MODULE "Probability test"
 #include <boost/test/unit_test.hpp>
 
@@ -63,4 +66,37 @@ BOOST_AUTO_TEST_CASE(TestMarginalization, * utf::tolerance(0.00001))
 
 	// One element is negative: marginalization is nan.
 	BOOST_TEST(isnan(marginalization({0.5, 0.5}, {-0.001, 0.9})));
+}
+
+BOOST_AUTO_TEST_CASE(TestGeneProbabilities, * utf::tolerance(0.00001))
+{
+	xt::random::seed(444);
+
+	string path = "../fixtures/GCA_000010525.1_tri_nucleotide_distance_to_mean.csv";
+	ifstream f1(path);
+	ifstream f2(path);
+
+	GeneProbabilies p(f1, "left");
+	GeneProbabilies q(f2, "right");
+
+	BOOST_TEST(p["BAF86014.1"] == 0.919480);
+	BOOST_TEST(q["BAF86014.1"] == 0.080520);
+
+	BOOST_TEST(q["BAF86014.1"] == q.Get("BAF86014.1"));
+	BOOST_TEST(q["BAF86014.1"] != q.Get("BAF86014.1", true));
+
+	BOOST_TEST(p.size() == 4'717);
+	BOOST_TEST(p.Values().size() == 4'717);
+
+	BOOST_TEST(p.size() == 4'717);
+	BOOST_TEST(q.Values().size() == 4'717);
+	BOOST_TEST(q.RandomValues().size() == 4'717);
+
+	BOOST_TEST(p.Values()[4'716] == 0.925331);
+	BOOST_TEST(q.Values()[4'716] == 0.074669);
+
+	BOOST_TEST(p.Keys().size() == 4'717);
+	BOOST_TEST(q.Keys().size() == 4'717);
+
+	BOOST_TEST(p.IndexOf("BAF86000.1") == 1);
 }

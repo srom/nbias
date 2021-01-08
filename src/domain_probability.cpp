@@ -1,13 +1,14 @@
 /*
 Compute probability & bayesian evidence that a Pfam or TIGR protein domain is near 
-their respective average tri-nucleotide distribution. 
+their respective average tri-nucleotide distribution.
 
-Conversely, it can compute the same quantities for domains consistently far from the mean.
+Conversely, the same quantities an be computed for domains consistently far from the mean.
 */
 #include <iostream>
 #include <string>
 #include <algorithm>
 #include <boost/program_options.hpp>
+#include "domain_probability_task.cpp"
 
 using namespace std;
 namespace po = boost::program_options;
@@ -15,8 +16,9 @@ namespace po = boost::program_options;
 int main(int ac, char* av[]) {
 	try {
 		po::options_description desc(
-			"Compute probability & bayesian evidence that a Pfam or TIGR protein domain is near (or far) "
-            "from their respective average tri-nucleotide distribution"
+			"Compute probability & bayesian evidence that a Pfam or TIGR "
+            "protein domain is near (or far) from their respective "
+            "average tri-nucleotide distribution"
 		);
 		desc.add_options()
             (
@@ -38,6 +40,11 @@ int main(int ac, char* av[]) {
             	"n_threads,t", 
             	po::value<int>()->default_value(4),
             	"Number of threads to use."
+            )
+            (
+                "seed,s", 
+                po::value<int>()->default_value(42),
+                "Random seed to use."
             )
         ;
 
@@ -71,6 +78,11 @@ int main(int ac, char* av[]) {
 
         const int n_threads = vm["n_threads"].as<int>();
         cerr << "Threads: " << n_threads << endl;
+
+        const int seed = vm["seed"].as<int>();
+        cerr << "Random seed: " << seed << endl;
+
+        compute_domain_probabilities(query, tail, n_threads, seed);
 	}
 	catch (exception& e) {
 		cerr << "Exception raised: " << e.what() << endl;

@@ -13,7 +13,7 @@ include_directories(external)
 # Boost library
 find_package(Boost 1.75 COMPONENTS program_options iostreams filesystem unit_test_framework REQUIRED)
 
-# XTensor
+# XTensor library
 set(XTENSOR_USE_XSIMD 1)
 find_package(xtensor REQUIRED)
 
@@ -70,3 +70,9 @@ add_executable(test_probability ${test_probability_SOURCES})
 target_link_libraries(test_probability ${Boost_LIBRARIES} xtensor)
 target_compile_options(test_probability PRIVATE -march=native)
 add_test(NAME probability COMMAND test_probability)
+
+file(GLOB test_domain_SOURCES "test/domain/*.cpp")
+add_executable(test_domain ${test_domain_SOURCES})
+target_link_libraries(test_domain ${Boost_LIBRARIES} xtensor)
+target_compile_options(test_domain PRIVATE -march=native)
+add_test(NAME domain COMMAND test_domain)

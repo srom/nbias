@@ -1,12 +1,44 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <cmath>
+#include <limits>
 #include <unordered_map>
 #include <boost/algorithm/string.hpp>
 #include <xtensor/xarray.hpp>
 #include <xtensor/xrandom.hpp>
 
 using namespace std;
+
+xt::xarray<double> compute_probability_from_distance(const vector<double>& distances, const bool left_tail) {
+	xt::xarray<double> probabilities = xt::zeros<double>({distances.size()});
+	for (int i = 0; i < distances.size(); ++i) {
+		probabilities[i] = log(distances[i]);
+	}
+
+	double min_val = xt::amin(probabilities)[0];
+	double max_val = xt::amax(probabilities)[0];
+
+	if (min_val == -std::numeric_limits<double>::infinity()) {
+		min_val = (double) -10;  // exp(-10) is very small
+	}
+
+	double norm_min = floor(min_val);
+	double norm_max = (double) 0;
+
+	while (min_val <= norm_min) {
+		norm_min -= 0.0001;
+	}
+	while (max_val >= norm_max) {
+		norm_max += 0.0001;
+	}
+
+	if (left_tail) {
+		return xt::eval((double) 1 - ((probabilities - norm_min) / (norm_max - norm_min)));
+	} else {
+		return xt::eval((probabilities - norm_min) / (norm_max - norm_min));
+	}	
+}
 
 class GeneProbabilies {
 	vector<string> keys;
@@ -24,7 +56,7 @@ class GeneProbabilies {
 			}
 			string line;
 			int i = 0;
-			vector<double> tempVector;
+			vector<double> distances;
 			while (getline(is, line)) {
 				if (i == 0 || line.empty()) {
 					++i;
@@ -42,23 +74,20 @@ class GeneProbabilies {
 				keys.push_back(key);
 				lookup[key] = i-1;
 
-				if (tail == "right") {
-					tempVector.push_back(stod(elements[1]));
-				} else {
-					tempVector.push_back(stod(elements[2]));
-				}
+				double distance = stod(elements[1]);
+				distances.push_back(distance);
 				++i;
 			}
 
-			if (tempVector.empty()) {
+			if (distances.empty()) {
 				throw runtime_error("GeneProbabilies: no data");
 			}
 
-			probabilities = xt::zeros<double>({tempVector.size()});
-			random_probabilities = xt::zeros<double>({tempVector.size()});
-			for (int j = 0; j < tempVector.size(); ++j) {
-				probabilities[j] = tempVector[j];
-				random_probabilities[j] = tempVector[j];
+			probabilities = compute_probability_from_distance(distances, tail == "left");
+
+			random_probabilities = xt::zeros<double>({probabilities.size()});
+			for (int j = 0; j < probabilities.size(); ++j) {
+				random_probabilities[j] = probabilities[j];
 			}
 			xt::random::shuffle(random_probabilities);
 		}

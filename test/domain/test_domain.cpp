@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(TestProteinDomains, * utf::tolerance(0.00001))
 
 	xt::xarray<double> probabilities = domains.Probabilities(domain, probs);
 	BOOST_TEST(probabilities.size() == 11);
-	BOOST_TEST(probabilities[10] == 0.923240);
+	BOOST_TEST(probabilities[10] == 0.641768);
 
 	xt::xarray<double> rand_probabilities = domains.Probabilities(domain, probs, true);
 	BOOST_TEST(rand_probabilities.size() == 11);
@@ -71,4 +71,18 @@ BOOST_AUTO_TEST_CASE(TestDomainProbability, * utf::tolerance(0.00001))
 	BOOST_TEST(record[3] == "0.200000");
 	BOOST_TEST(record[4] == "0.653213");
 	BOOST_TEST(record[5] == "Substantial");
+}
+
+BOOST_AUTO_TEST_CASE(TestLoadDomainProbabilities, * utf::tolerance(0.00001)) {
+	string path = "../fixtures/GCA_000010525.1_pfam_probability_left.csv";
+	vector<DomainProbability> domains = LoadDomainProbabilities(path);
+
+	BOOST_TEST(domains.size() == 2'546);
+
+	BOOST_TEST(domains[6].domain.id == "PF06481.14");
+	BOOST_TEST(domains[6].domain.query == "COX_ARM");
+	BOOST_TEST(domains[6].probability == 0.692109);
+	BOOST_TEST(domains[6].probability_random == 0.415388);
+	BOOST_TEST(domains[6].evidence == 0.221721);
+	BOOST_TEST(domains[6].evidence_strength == "Weak");
 }

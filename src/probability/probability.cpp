@@ -6,11 +6,19 @@ Implementation of the probability's product rule and marginalization for indepen
 #include <xtensor/xmath.hpp>
 
 double product_rule(const xt::xarray<double>& p) {
+	return xt::exp(xt::sum(xt::log(p)))[0];
+}
+
+xt::xarray<double> product_rule(const xt::xarray<double>& p, const size_t axis) {
+	return xt::eval(xt::exp(xt::sum(xt::log(p), std::move(axis))));
+}
+
+double product_rule_normalized(const xt::xarray<double>& p) {
 	auto n_elements = p.shape()[0];
 	return xt::exp(xt::sum(xt::log(p)) / n_elements)[0];
 }
 
-xt::xarray<double> product_rule(const xt::xarray<double>& p, const size_t axis) {
+xt::xarray<double> product_rule_normalized(const xt::xarray<double>& p, const size_t axis) {
 	auto n_elements = p.shape()[axis];
 	return xt::eval(xt::exp(xt::sum(xt::log(p), std::move(axis)) / n_elements));
 }

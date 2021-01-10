@@ -41,11 +41,6 @@ int main(int ac, char* av[]) {
             	po::value<int>()->default_value(4),
             	"Number of threads to use."
             )
-            (
-                "seed,s", 
-                po::value<int>()->default_value(42),
-                "Random seed to use."
-            )
         ;
 
         po::variables_map vm;
@@ -79,10 +74,7 @@ int main(int ac, char* av[]) {
         const int n_threads = vm["n_threads"].as<int>();
         cerr << "Threads: " << n_threads << endl;
 
-        const int seed = vm["seed"].as<int>();
-        cerr << "Random seed: " << seed << endl;
-
-        compute_domain_probabilities(query, tail, n_threads, seed);
+        compute_domain_probabilities(query, tail, n_threads);
 	}
 	catch (exception& e) {
 		cerr << "Exception raised: " << e.what() << endl;

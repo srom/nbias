@@ -10,7 +10,6 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <xtensor/xarray.hpp>
-#include <xtensor/xrandom.hpp>
 #include "csv.hpp"
 #include "assembly/assembly.cpp"
 #include "probability/probability.cpp"
@@ -171,19 +170,21 @@ bool task_compute_domain_probabilities_per_phylum(
 		auto writer = make_csv_writer(of);
 		writer << DomainProbability::RecordHeader();
 
+		xt::xarray<double> uniform_prior = make_uniform_prior(n_assemblies);
+
 		vector<DomainProbability> records;
 		for (auto& domain : protein_domains) {
 			auto& domain_probs = protein_domain_probs[domain];
 			auto n_probs = domain_probs.size();
-			xt::xarray<double> probabilities = xt::zeros<double>({n_probs});
-			xt::xarray<double> random_probabilities = xt::zeros<double>({n_probs});
+			xt::xarray<double> probabilities = xt::zeros<double>({n_assemblies});
+			xt::xarray<double> random_probabilities = xt::zeros<double>({n_assemblies});
 			for (int ix = 0; ix < n_probs; ++ix) {
 				probabilities[ix] = domain_probs[ix].probability;
 				random_probabilities[ix] = domain_probs[ix].probability_random;
 			}
 
-			double probability = product_rule(probabilities);
-			double probability_random = product_rule(random_probabilities);
+			double probability = marginalization(uniform_prior, probabilities);
+			double probability_random = marginalization(uniform_prior, random_probabilities);
 
 			try {
 				DomainProbability record(domain, probability, probability_random);
@@ -209,11 +210,9 @@ bool task_compute_domain_probabilities_per_phylum(
 void compute_domain_probabilities(
 	const string query, 
 	const string tail, 
-	const int n_threads,
-	const int seed
+	const int n_threads
 ) {
 	auto start = system_clock::now();
-	xt::random::seed(seed);
 
 	string dataFolder = "../data/";
 	string assembliesPath = dataFolder + "assemblies.csv";
@@ -354,12 +353,12 @@ void compute_domain_probabilities(
 		}
 	}
 
-	xt::xarray<double> uniform_prior = make_uniform_prior(n_phyla);
-
 	const string protein_out_path = dataFolder + query + "_probability_" + tail + ".csv";
 	ofstream output_file(protein_out_path);
 	auto writer = make_csv_writer(output_file);
 	writer << DomainProbability::RecordHeader();
+
+	xt::xarray<double> uniform_prior = make_uniform_prior(n_phyla);
 
 	vector<DomainProbability> records;
 	for (auto& domain : protein_domains) {

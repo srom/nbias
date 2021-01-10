@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <string>
+#include <sstream>
 #include <unordered_map>
 #include <boost/algorithm/string.hpp>
 #include <xtensor/xarray.hpp>
@@ -87,7 +88,14 @@ class ProteinDomains {
 					);
 				}
 				string protein_id = elements[1];
-				ProteinDomain domain(elements[3], elements[2]);
+				string query = elements[2];
+				string full_id = elements[3];
+
+				vector<string> id_parts;
+				boost::split(id_parts, full_id, boost::is_any_of("."));
+				string id = id_parts[0];
+				
+				ProteinDomain domain(id, query);
 
 				if (protein_id_map.find(domain) == protein_id_map.end()) {
 					protein_id_map[domain] = vector<string>{protein_id};
@@ -140,6 +148,15 @@ string EvidenceStrength(double evidence) {
 	}
 }
 
+template <typename T>
+string to_string_with_precision(const T val, const int n = 8)
+{
+    ostringstream out;
+    out.precision(n);
+    out << fixed << val;
+    return out.str();
+}
+
 struct DomainProbability {
 	ProteinDomain domain;
 	double probability;
@@ -169,9 +186,9 @@ struct DomainProbability {
 		return vector<string>{
 			domain.id,
 			domain.query,
-			to_string(probability),
-			to_string(probability_random),
-			to_string(evidence),
+			to_string_with_precision(log(probability)),
+			to_string_with_precision(log(probability_random)),
+			to_string_with_precision(evidence),
 			evidence_strength,
 		};
 	}
@@ -180,8 +197,8 @@ struct DomainProbability {
 		return vector<string>{
 			"id",
 			"query",
-			"probability",
-			"probability_random",
+			"log_probability",
+			"log_probability_random",
 			"evidence",
 			"evidence_strength",
 		};
@@ -223,8 +240,8 @@ vector<DomainProbability> LoadDomainProbabilities(const string& path) {
 		out.push_back(
 			DomainProbability(
 				domain,
-				row["probability"].get<double>(),
-				row["probability_random"].get<double>()
+				exp(row["log_probability"].get<double>()),
+				exp(row["log_probability_random"].get<double>())
 			)
 		);
 	}

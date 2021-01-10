@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <boost/algorithm/string.hpp>
 #include <xtensor/xarray.hpp>
-#include <xtensor/xrandom.hpp>
+#include <xtensor/xmath.hpp>
 
 using namespace std;
 
@@ -87,11 +87,11 @@ class GeneProbabilies {
 
 			probabilities = compute_probability_from_distance(distances, tail == "left");
 
+			double mean = xt::mean(probabilities)();
 			random_probabilities = xt::zeros<double>({probabilities.size()});
 			for (int j = 0; j < probabilities.size(); ++j) {
-				random_probabilities[j] = probabilities[j];
+				random_probabilities[j] = mean;
 			}
-			xt::random::shuffle(random_probabilities);
 		}
 
 		double operator[](const string& id) {
@@ -128,9 +128,9 @@ class GeneProbabilies {
 };
 
 xt::xarray<double> make_uniform_prior(const size_t n_elements) {
-	return xt::eval(xt::ones<double>({n_elements}) / n_elements);
+	return xt::ones<double>({n_elements}) / n_elements;
 }
 
 xt::xarray<double> make_uniform_prior(const size_t n_rows, const size_t n_cols) {
-	return xt::eval(xt::ones<double>({n_rows, n_cols}) / n_cols);
+	return xt::ones<double>({n_rows, n_cols}) / n_cols;
 }

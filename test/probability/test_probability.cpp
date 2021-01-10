@@ -2,7 +2,6 @@
 #include <fstream>
 #include <cmath>
 #include <xtensor/xarray.hpp>
-#include <xtensor/xrandom.hpp>
 #include "../src/probability/probability.cpp"
 #include "../src/probability/probability_util.cpp"
 #define BOOST_TEST_MODULE "Probability test"
@@ -14,7 +13,7 @@ namespace utf = boost::unit_test;
 BOOST_AUTO_TEST_CASE(TestProductRule, * utf::tolerance(0.00001))
 {
 	xt::xarray<double> p = {0.9, 0.9, 0.1};
-	BOOST_TEST(product_rule(p) == 0.432674);
+	BOOST_TEST(product_rule(p) == 0.081);
 
 	xt::xarray<double> p_matrix = {
 		{0.9, 0.9, 0.1},
@@ -23,6 +22,38 @@ BOOST_AUTO_TEST_CASE(TestProductRule, * utf::tolerance(0.00001))
 
 	xt::xarray<double> r0 = product_rule(p_matrix, 0);
 	xt::xarray<double> r1 = product_rule(p_matrix, 1);
+
+	BOOST_TEST(r0.size() == 3);
+	BOOST_TEST(r1.size() == 2);
+
+	BOOST_TEST(r0[0] == 0.36);
+	BOOST_TEST(r0[1] == 0.18);
+	BOOST_TEST(r0[2] == 0.01);
+
+	BOOST_TEST(r1[0] == 0.081);
+	BOOST_TEST(r1[1] == 0.008);
+
+	// One element is zero: product is zero.
+	xt::xarray<double> q = {0., 0.9, 0.1};
+	BOOST_TEST(product_rule(q) == 0);
+
+	// One element is negative: product is nan.
+	xt::xarray<double> r = {-0.001, 0.9, 0.1};
+	BOOST_TEST(isnan(product_rule(r)));
+}
+
+BOOST_AUTO_TEST_CASE(TestProductRuleNormalized, * utf::tolerance(0.00001))
+{
+	xt::xarray<double> p = {0.9, 0.9, 0.1};
+	BOOST_TEST(product_rule_normalized(p) == 0.432674);
+
+	xt::xarray<double> p_matrix = {
+		{0.9, 0.9, 0.1},
+		{0.4, 0.2, 0.1},
+	};
+
+	xt::xarray<double> r0 = product_rule_normalized(p_matrix, 0);
+	xt::xarray<double> r1 = product_rule_normalized(p_matrix, 1);
 
 	BOOST_TEST(r0.size() == 3);
 	BOOST_TEST(r1.size() == 2);
@@ -36,11 +67,11 @@ BOOST_AUTO_TEST_CASE(TestProductRule, * utf::tolerance(0.00001))
 
 	// One element is zero: product is zero.
 	xt::xarray<double> q = {0., 0.9, 0.1};
-	BOOST_TEST(product_rule(q) == 0);
+	BOOST_TEST(product_rule_normalized(q) == 0);
 
 	// One element is negative: product is nan.
 	xt::xarray<double> r = {-0.001, 0.9, 0.1};
-	BOOST_TEST(isnan(product_rule(r)));
+	BOOST_TEST(isnan(product_rule_normalized(r)));
 }
 
 BOOST_AUTO_TEST_CASE(TestMarginalization, * utf::tolerance(0.00001))
@@ -91,8 +122,6 @@ BOOST_AUTO_TEST_CASE(TestComputeProbabilityFromDistance, * utf::tolerance(0.0000
 
 BOOST_AUTO_TEST_CASE(TestGeneProbabilities, * utf::tolerance(0.00001))
 {
-	xt::random::seed(444);
-
 	string path = "../fixtures/GCA_000010525.1_tri_nucleotide_distance_to_mean.csv";
 	ifstream f1(path);
 	ifstream f2(path);

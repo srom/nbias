@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <cmath>
 #include <xtensor/xarray.hpp>
-#include <xtensor/xrandom.hpp>
 #include "../src/domain/domain.cpp"
 #define BOOST_TEST_MODULE "Domain test"
 #include <boost/test/unit_test.hpp>
@@ -11,15 +11,13 @@ namespace utf = boost::unit_test;
 
 BOOST_AUTO_TEST_CASE(TestProteinDomains, * utf::tolerance(0.00001))
 {
-	xt::random::seed(444);
-
 	ifstream f("../fixtures/GCA_000010525.1_pfam.csv");
 	ProteinDomains domains(f);
 
 	BOOST_TEST(domains.size() == 2'546);
 	BOOST_TEST(domains.Keys().size() == 2'546);
 
-	ProteinDomain domain("PF05175.14", "MTS");
+	ProteinDomain domain("PF05175", "MTS");
 
 	auto protein_ids = domains.ProteinIds(domain);
 
@@ -41,13 +39,13 @@ BOOST_AUTO_TEST_CASE(TestProteinDomains, * utf::tolerance(0.00001))
 
 BOOST_AUTO_TEST_CASE(TestDomainProbability, * utf::tolerance(0.00001))
 {
-	ProteinDomain domain("PF05175.14", "MTS");
+	ProteinDomain domain("PF05175", "MTS");
 	DomainProbability domain_probability(domain, 0.9, 0.2);
 
 	BOOST_TEST(domain_probability.evidence == 0.653213);
 	BOOST_TEST(domain_probability.evidence_strength == "Substantial");
 
-	ProteinDomain domain2("PF00004.1", "AAA");
+	ProteinDomain domain2("PF00004", "AAA");
 	DomainProbability domain_probability2(domain2, 0.3, 0.2);
 	BOOST_TEST(domain_probability2.evidence_strength == "Weak");
 
@@ -58,18 +56,18 @@ BOOST_AUTO_TEST_CASE(TestDomainProbability, * utf::tolerance(0.00001))
 	BOOST_TEST(record_header.size() == 6);
 	BOOST_TEST(record_header[0] == "id");
 	BOOST_TEST(record_header[1] == "query");
-	BOOST_TEST(record_header[2] == "probability");
-	BOOST_TEST(record_header[3] == "probability_random");
+	BOOST_TEST(record_header[2] == "log_probability");
+	BOOST_TEST(record_header[3] == "log_probability_random");
 	BOOST_TEST(record_header[4] == "evidence");
 	BOOST_TEST(record_header[5] == "evidence_strength");
 
 	auto record = domain_probability.Record();
 	BOOST_TEST(record.size() == 6);
-	BOOST_TEST(record[0] == "PF05175.14");
+	BOOST_TEST(record[0] == "PF05175");
 	BOOST_TEST(record[1] == "MTS");
-	BOOST_TEST(record[2] == "0.900000");
-	BOOST_TEST(record[3] == "0.200000");
-	BOOST_TEST(record[4] == "0.653213");
+	BOOST_TEST(record[2] == "-0.10536052");
+	BOOST_TEST(record[3] == "-1.60943791");
+	BOOST_TEST(record[4] == "0.65321251");
 	BOOST_TEST(record[5] == "Substantial");
 
 	// Probability < 0 or > 1: throw runtime error.
@@ -83,10 +81,11 @@ BOOST_AUTO_TEST_CASE(TestLoadDomainProbabilities, * utf::tolerance(0.00001)) {
 
 	BOOST_TEST(domains.size() == 2'546);
 
-	BOOST_TEST(domains[6].domain.id == "PF06481.14");
-	BOOST_TEST(domains[6].domain.query == "COX_ARM");
-	BOOST_TEST(domains[6].probability == 0.692109);
-	BOOST_TEST(domains[6].probability_random == 0.415388);
-	BOOST_TEST(domains[6].evidence == 0.221721);
-	BOOST_TEST(domains[6].evidence_strength == "Weak");
+	size_t ix = 794;
+	BOOST_TEST(domains[ix].domain.id == "PF06481");
+	BOOST_TEST(domains[ix].domain.query == "COX_ARM");
+	BOOST_TEST(domains[ix].probability == 0.692109);
+	BOOST_TEST(domains[ix].probability_random == 0.611623);
+	BOOST_TEST(domains[ix].evidence == 0.0536908);
+	BOOST_TEST(domains[ix].evidence_strength == "Weak");
 }

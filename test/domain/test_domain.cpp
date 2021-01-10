@@ -71,6 +71,10 @@ BOOST_AUTO_TEST_CASE(TestDomainProbability, * utf::tolerance(0.00001))
 	BOOST_TEST(record[3] == "0.200000");
 	BOOST_TEST(record[4] == "0.653213");
 	BOOST_TEST(record[5] == "Substantial");
+
+	// Probability < 0 or > 1: throw runtime error.
+	BOOST_CHECK_THROW(DomainProbability(domain, -0.1, 0.2), runtime_error);
+	BOOST_CHECK_THROW(DomainProbability(domain, 0.9, 1.5), runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(TestLoadDomainProbabilities, * utf::tolerance(0.00001)) {

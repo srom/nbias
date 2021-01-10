@@ -13,15 +13,17 @@ using namespace std;
 xt::xarray<double> compute_probability_from_distance(const vector<double>& distances, const bool left_tail) {
 	xt::xarray<double> probabilities = xt::zeros<double>({distances.size()});
 	for (int i = 0; i < distances.size(); ++i) {
-		probabilities[i] = log(distances[i]);
+		auto d = distances[i];
+		if (d > (double) 0) {
+			probabilities[i] = log(distances[i]);
+		} else {
+			// Proxy for -infinity:
+			probabilities[i] = (double) -10;
+		}
 	}
 
 	double min_val = xt::amin(probabilities)[0];
 	double max_val = xt::amax(probabilities)[0];
-
-	if (min_val == -std::numeric_limits<double>::infinity()) {
-		min_val = (double) -10;  // exp(-10) is very small
-	}
 
 	double norm_min = floor(min_val);
 	double norm_max = (double) 0;
@@ -124,3 +126,11 @@ class GeneProbabilies {
 			return lookup.size();
 		}
 };
+
+xt::xarray<double> make_uniform_prior(const size_t n_elements) {
+	return xt::eval(xt::ones<double>({n_elements}) / n_elements);
+}
+
+xt::xarray<double> make_uniform_prior(const size_t n_rows, const size_t n_cols) {
+	return xt::eval(xt::ones<double>({n_rows, n_cols}) / n_cols);
+}

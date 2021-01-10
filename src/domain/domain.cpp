@@ -152,6 +152,12 @@ struct DomainProbability {
 		const double& p,
 		const double& pr
 	) {
+		if (p < 0 || pr < 0) {
+			throw runtime_error("DomainProbability: negative probability encountered");
+		} else if (p > 1 || pr > 1) {
+			throw runtime_error("DomainProbability: probability greater than one encountered");
+		}
+
 		domain = ProteinDomain(d);
 		probability = p;
 		probability_random = pr;

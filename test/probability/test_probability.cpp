@@ -64,6 +64,9 @@ BOOST_AUTO_TEST_CASE(TestMarginalization, * utf::tolerance(0.00001))
 	BOOST_TEST(r[0] == 0.580000);
 	BOOST_TEST(r[1] == 0.233100);
 
+	// One element is zero: should be handled transparently.
+	BOOST_TEST(marginalization({0.5, 0.5}, {0.0, 0.9}) == 0.45);
+
 	// One element is negative: marginalization is nan.
 	BOOST_TEST(isnan(marginalization({0.5, 0.5}, {-0.001, 0.9})));
 }
@@ -117,4 +120,23 @@ BOOST_AUTO_TEST_CASE(TestGeneProbabilities, * utf::tolerance(0.00001))
 	BOOST_TEST(q.Keys().size() == 4'717);
 
 	BOOST_TEST(p.IndexOf("BAF86000.1") == 1);
+}
+
+BOOST_AUTO_TEST_CASE(TestMakeUniformPrior, * utf::tolerance(0.00001))
+{
+	xt::xarray<double> p = make_uniform_prior(4);
+
+	BOOST_TEST(p.size() == 4);
+	BOOST_TEST(p[0] == 0.25);
+	BOOST_TEST(p[1] == 0.25);
+	BOOST_TEST(p[2] == 0.25);
+	BOOST_TEST(p[3] == 0.25);
+
+	xt::xarray<double> q = make_uniform_prior(6, 4);
+	
+	BOOST_TEST(q.size() == 6 * 4);
+	BOOST_TEST(q.shape()[0] == 6);
+	BOOST_TEST(q.shape()[1] == 4);
+	BOOST_TEST(q(0, 2) == 0.25);
+	BOOST_TEST(q(1, 3) == 0.25);
 }

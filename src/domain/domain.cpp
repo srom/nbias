@@ -139,10 +139,12 @@ string EvidenceStrength(double evidence) {
 		return "Negative";
 	} else if (evidence <= 0.5) {
 		return "Weak";
-	} else if (evidence <= 1) {
+	} else if (evidence <= 1.0) {
 		return "Substantial";
-	} else if (evidence <= 2) {
+	} else if (evidence <= 1.5) {
 		return "Strong";
+	} else if (evidence <= 2.0) {
+		return "Very Strong";
 	} else {
 		return "Decisive";
 	}
@@ -161,23 +163,28 @@ struct DomainProbability {
 	ProteinDomain domain;
 	double probability;
 	double probability_random;
+	size_t n_elements;
 	double evidence;
 	string evidence_strength;
 
 	DomainProbability(
 		const ProteinDomain& d, 
 		const double& p,
-		const double& pr
+		const double& pr,
+		const size_t n_el
 	) {
 		if (p < 0 || pr < 0) {
 			throw runtime_error("DomainProbability: negative probability encountered");
 		} else if (p > 1 || pr > 1) {
-			throw runtime_error("DomainProbability: probability greater than one encountered");
+			throw runtime_error("DomainProbability: probability > 0 encountered");
+		} else if (n_el == 0) {
+			throw runtime_error("DomainProbability: n_elements is zero");
 		}
 
 		domain = ProteinDomain(d);
 		probability = p;
 		probability_random = pr;
+		n_elements = n_el;
 		evidence = log10(probability) - log10(probability_random);
 		evidence_strength = EvidenceStrength(evidence);
 	}
@@ -188,6 +195,7 @@ struct DomainProbability {
 			domain.query,
 			to_string_with_precision(log(probability)),
 			to_string_with_precision(log(probability_random)),
+			to_string(n_elements),
 			to_string_with_precision(evidence),
 			evidence_strength,
 		};
@@ -199,6 +207,7 @@ struct DomainProbability {
 			"query",
 			"log_probability",
 			"log_probability_random",
+			"n_elements",
 			"evidence",
 			"evidence_strength",
 		};
@@ -241,7 +250,8 @@ vector<DomainProbability> LoadDomainProbabilities(const string& path) {
 			DomainProbability(
 				domain,
 				exp(row["log_probability"].get<double>()),
-				exp(row["log_probability_random"].get<double>())
+				exp(row["log_probability_random"].get<double>()),
+				row["n_elements"].get<size_t>()
 			)
 		);
 	}

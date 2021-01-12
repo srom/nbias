@@ -40,39 +40,41 @@ BOOST_AUTO_TEST_CASE(TestProteinDomains, * utf::tolerance(0.00001))
 BOOST_AUTO_TEST_CASE(TestDomainProbability, * utf::tolerance(0.00001))
 {
 	ProteinDomain domain("PF05175", "MTS");
-	DomainProbability domain_probability(domain, 0.9, 0.2);
+	DomainProbability domain_probability(domain, 0.9, 0.2, 10);
 
 	BOOST_TEST(domain_probability.evidence == 0.653213);
 	BOOST_TEST(domain_probability.evidence_strength == "Substantial");
 
 	ProteinDomain domain2("PF00004", "AAA");
-	DomainProbability domain_probability2(domain2, 0.3, 0.2);
+	DomainProbability domain_probability2(domain2, 0.3, 0.2, 5);
 	BOOST_TEST(domain_probability2.evidence_strength == "Weak");
 
 	bool g = domain_probability > domain_probability2;
 	BOOST_TEST(g == true);
 
 	auto record_header = DomainProbability::RecordHeader();
-	BOOST_TEST(record_header.size() == 6);
+	BOOST_TEST(record_header.size() == 7);
 	BOOST_TEST(record_header[0] == "id");
 	BOOST_TEST(record_header[1] == "query");
 	BOOST_TEST(record_header[2] == "log_probability");
 	BOOST_TEST(record_header[3] == "log_probability_random");
-	BOOST_TEST(record_header[4] == "evidence");
-	BOOST_TEST(record_header[5] == "evidence_strength");
+	BOOST_TEST(record_header[4] == "n_elements");
+	BOOST_TEST(record_header[5] == "evidence");
+	BOOST_TEST(record_header[6] == "evidence_strength");
 
 	auto record = domain_probability.Record();
-	BOOST_TEST(record.size() == 6);
+	BOOST_TEST(record.size() == 7);
 	BOOST_TEST(record[0] == "PF05175");
 	BOOST_TEST(record[1] == "MTS");
 	BOOST_TEST(record[2] == "-0.10536052");
 	BOOST_TEST(record[3] == "-1.60943791");
-	BOOST_TEST(record[4] == "0.65321251");
-	BOOST_TEST(record[5] == "Substantial");
+	BOOST_TEST(record[4] == "10");
+	BOOST_TEST(record[5] == "0.65321251");
+	BOOST_TEST(record[6] == "Substantial");
 
 	// Probability < 0 or > 1: throw runtime error.
-	BOOST_CHECK_THROW(DomainProbability(domain, -0.1, 0.2), runtime_error);
-	BOOST_CHECK_THROW(DomainProbability(domain, 0.9, 1.5), runtime_error);
+	BOOST_CHECK_THROW(DomainProbability(domain, -0.1, 0.2, 5), runtime_error);
+	BOOST_CHECK_THROW(DomainProbability(domain, 0.9, 1.5, 5), runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(TestLoadDomainProbabilities, * utf::tolerance(0.00001)) {

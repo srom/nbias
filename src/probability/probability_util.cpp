@@ -134,3 +134,7 @@ xt::xarray<double> make_uniform_prior(const size_t n_elements) {
 xt::xarray<double> make_uniform_prior(const size_t n_rows, const size_t n_cols) {
 	return xt::ones<double>({n_rows, n_cols}) / n_cols;
 }
+
+double normalize_probability(const double& probability, const size_t& n_elements) {
+	return exp(log(probability) / n_elements);
+}

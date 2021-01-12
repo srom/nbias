@@ -80,7 +80,12 @@ bool task_compute_domain_probabilities_per_assembly(
 			double probability_random = product_rule(random_probs);
 
 			try {
-				DomainProbability record(domain, probability, probability_random);
+				DomainProbability record(
+					domain, 
+					probability, 
+					probability_random, 
+					probabilities.size()
+				);
 				records.push_back(record);
 			}
 			catch (exception& e) {
@@ -187,7 +192,12 @@ bool task_compute_domain_probabilities_per_phylum(
 			double probability_random = marginalization(uniform_prior, random_probabilities);
 
 			try {
-				DomainProbability record(domain, probability, probability_random);
+				DomainProbability record(
+					domain, 
+					probability, 
+					probability_random,
+					n_probs
+				);
 				records.push_back(record);
 			}
 			catch (exception& e) {
@@ -375,7 +385,12 @@ void compute_domain_probabilities(
 		double probability_random = marginalization(uniform_prior, random_probabilities);
 
 		try {
-			DomainProbability record(domain, probability, probability_random);
+			DomainProbability record(
+				domain, 
+				probability, 
+				probability_random,
+				n_probs
+			);
 			records.push_back(record);
 		}
 		catch (exception& e) {

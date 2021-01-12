@@ -10,6 +10,7 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <xtensor/xarray.hpp>
+#include <xtensor/xmath.hpp>
 #include "csv.hpp"
 #include "assembly/assembly.cpp"
 #include "probability/probability.cpp"
@@ -73,18 +74,22 @@ bool task_compute_domain_probabilities_per_assembly(
 
 		vector<DomainProbability> records;
 		for (const ProteinDomain& domain : domains.Keys()) {
-			xt::xarray<double> probabilities = domains.Probabilities(domain, gene_probs);
-			xt::xarray<double> random_probs = domains.Probabilities(domain, gene_probs, true);
+			xt::xarray<double> log_probabilities = xt::eval(
+				xt::log(domains.Probabilities(domain, gene_probs))
+			);
+			xt::xarray<double> log_probabilities_random = xt::eval(
+				xt::log(domains.Probabilities(domain, gene_probs, true))
+			);
 
-			double probability = product_rule(probabilities);
-			double probability_random = product_rule(random_probs);
+			double log_prob = product_rule_log(log_probabilities);
+			double log_prob_random = product_rule_log(log_probabilities_random);
 
 			try {
 				DomainProbability record(
 					domain, 
-					probability, 
-					probability_random, 
-					probabilities.size()
+					log_prob, 
+					log_prob_random, 
+					log_probabilities.size()
 				);
 				records.push_back(record);
 			}
@@ -175,27 +180,35 @@ bool task_compute_domain_probabilities_per_phylum(
 		auto writer = make_csv_writer(of);
 		writer << DomainProbability::RecordHeader();
 
-		xt::xarray<double> uniform_prior = make_uniform_prior(n_assemblies);
+		xt::xarray<double> uniform_log_prior = xt::eval(
+			xt::log(make_uniform_prior(n_assemblies))
+		);
 
 		vector<DomainProbability> records;
 		for (auto& domain : protein_domains) {
 			auto& domain_probs = protein_domain_probs[domain];
 			auto n_probs = domain_probs.size();
-			xt::xarray<double> probabilities = xt::zeros<double>({n_assemblies});
-			xt::xarray<double> random_probabilities = xt::zeros<double>({n_assemblies});
+			xt::xarray<double> log_probs = xt::zeros<double>({n_assemblies});
+			xt::xarray<double> log_probs_random = xt::zeros<double>({n_assemblies});
 			for (int ix = 0; ix < n_probs; ++ix) {
-				probabilities[ix] = domain_probs[ix].probability;
-				random_probabilities[ix] = domain_probs[ix].probability_random;
+				log_probs[ix] = domain_probs[ix].log_probability;
+				log_probs_random[ix] = domain_probs[ix].log_probability_random;
 			}
 
-			double probability = marginalization(uniform_prior, probabilities);
-			double probability_random = marginalization(uniform_prior, random_probabilities);
+			double log_prob = marginalization_log(
+				uniform_log_prior, 
+				log_probs
+			);
+			double log_prob_random = marginalization_log(
+				uniform_log_prior, 
+				log_probs_random
+			);
 
 			try {
 				DomainProbability record(
 					domain, 
-					probability, 
-					probability_random,
+					log_prob, 
+					log_prob_random,
 					n_probs
 				);
 				records.push_back(record);
@@ -368,27 +381,35 @@ void compute_domain_probabilities(
 	auto writer = make_csv_writer(output_file);
 	writer << DomainProbability::RecordHeader();
 
-	xt::xarray<double> uniform_prior = make_uniform_prior(n_phyla);
+	xt::xarray<double> uniform_log_prior = xt::eval(
+		xt::log(make_uniform_prior(n_phyla))
+	);
 
 	vector<DomainProbability> records;
 	for (auto& domain : protein_domains) {
 		auto& domain_probs = protein_domain_probs[domain];
 		auto n_probs = domain_probs.size();
-		xt::xarray<double> probabilities = xt::zeros<double>({n_phyla});
-		xt::xarray<double> random_probabilities = xt::zeros<double>({n_phyla});
+		xt::xarray<double> log_probs = xt::zeros<double>({n_phyla});
+		xt::xarray<double> log_probs_random = xt::zeros<double>({n_phyla});
 		for (int ix = 0; ix < n_probs; ++ix) {
-			probabilities[ix] = domain_probs[ix].probability;
-			random_probabilities[ix] = domain_probs[ix].probability_random;
+			log_probs[ix] = domain_probs[ix].log_probability;
+			log_probs_random[ix] = domain_probs[ix].log_probability_random;
 		}
 
-		double probability = marginalization(uniform_prior, probabilities);
-		double probability_random = marginalization(uniform_prior, random_probabilities);
+		double log_prob = marginalization_log(
+			uniform_log_prior, 
+			log_probs
+		);
+		double log_prob_random = marginalization_log(
+			uniform_log_prior, 
+			log_probs_random
+		);
 
 		try {
 			DomainProbability record(
 				domain, 
-				probability, 
-				probability_random,
+				log_prob, 
+				log_prob_random,
 				n_probs
 			);
 			records.push_back(record);

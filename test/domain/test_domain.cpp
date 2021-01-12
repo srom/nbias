@@ -40,13 +40,13 @@ BOOST_AUTO_TEST_CASE(TestProteinDomains, * utf::tolerance(0.00001))
 BOOST_AUTO_TEST_CASE(TestDomainProbability, * utf::tolerance(0.00001))
 {
 	ProteinDomain domain("PF05175", "MTS");
-	DomainProbability domain_probability(domain, 0.9, 0.2, 10);
+	DomainProbability domain_probability(domain, log(0.9), log(0.2), 10);
 
 	BOOST_TEST(domain_probability.evidence == 0.653213);
 	BOOST_TEST(domain_probability.evidence_strength == "Substantial");
 
 	ProteinDomain domain2("PF00004", "AAA");
-	DomainProbability domain_probability2(domain2, 0.3, 0.2, 5);
+	DomainProbability domain_probability2(domain2, log(0.3), log(0.2), 5);
 	BOOST_TEST(domain_probability2.evidence_strength == "Weak");
 
 	bool g = domain_probability > domain_probability2;
@@ -72,9 +72,10 @@ BOOST_AUTO_TEST_CASE(TestDomainProbability, * utf::tolerance(0.00001))
 	BOOST_TEST(record[5] == "0.65321251");
 	BOOST_TEST(record[6] == "Substantial");
 
-	// Probability < 0 or > 1: throw runtime error.
-	BOOST_CHECK_THROW(DomainProbability(domain, -0.1, 0.2, 5), runtime_error);
-	BOOST_CHECK_THROW(DomainProbability(domain, 0.9, 1.5, 5), runtime_error);
+	// Probability <= 0 or > 1: throw runtime error.
+	BOOST_CHECK_THROW(DomainProbability(domain, log(0.0), log(0.2), 5), runtime_error);
+	BOOST_CHECK_THROW(DomainProbability(domain, log(-0.1), log(0.2), 5), runtime_error);
+	BOOST_CHECK_THROW(DomainProbability(domain, log(0.9), log(1.5), 5), runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(TestLoadDomainProbabilities, * utf::tolerance(0.00001)) {
@@ -86,8 +87,8 @@ BOOST_AUTO_TEST_CASE(TestLoadDomainProbabilities, * utf::tolerance(0.00001)) {
 	size_t ix = 794;
 	BOOST_TEST(domains[ix].domain.id == "PF06481");
 	BOOST_TEST(domains[ix].domain.query == "COX_ARM");
-	BOOST_TEST(domains[ix].probability == 0.692109);
-	BOOST_TEST(domains[ix].probability_random == 0.611623);
+	BOOST_TEST(domains[ix].log_probability == log(0.692109));
+	BOOST_TEST(domains[ix].log_probability_random == log(0.611623));
 	BOOST_TEST(domains[ix].evidence == 0.0536908);
 	BOOST_TEST(domains[ix].evidence_strength == "Weak");
 }

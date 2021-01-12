@@ -11,6 +11,8 @@
 using namespace std;
 using namespace csv;
 
+const double LOG_10 = log((double) 10);
+
 struct ProteinDomain {
 	string id;
 	string query;
@@ -161,31 +163,33 @@ string to_string_with_precision(const T val, const int n = 8)
 
 struct DomainProbability {
 	ProteinDomain domain;
-	double probability;
-	double probability_random;
+	double log_probability;
+	double log_probability_random;
 	size_t n_elements;
 	double evidence;
 	string evidence_strength;
 
 	DomainProbability(
 		const ProteinDomain& d, 
-		const double& p,
-		const double& pr,
+		const double& log_p,
+		const double& log_pr,
 		const size_t n_el
 	) {
-		if (p < 0 || pr < 0) {
-			throw runtime_error("DomainProbability: negative probability encountered");
-		} else if (p > 1 || pr > 1) {
-			throw runtime_error("DomainProbability: probability > 0 encountered");
+		if (isinf(log_p) || isinf(log_pr)) {
+			throw runtime_error("DomainProbability: -inf log probability encountered");
+		} else if (isnan(log_p) || isnan(log_pr)) {
+			throw runtime_error("DomainProbability: NaN log probability encountered");
+		} else if (log_p > 0 || log_pr > 0) {
+			throw runtime_error("DomainProbability: log probability > 0 encountered");
 		} else if (n_el == 0) {
 			throw runtime_error("DomainProbability: n_elements is zero");
 		}
 
 		domain = ProteinDomain(d);
-		probability = p;
-		probability_random = pr;
+		log_probability = log_p;
+		log_probability_random = log_pr;
 		n_elements = n_el;
-		evidence = log10(probability) - log10(probability_random);
+		evidence = (log_probability - log_probability_random) / LOG_10;
 		evidence_strength = EvidenceStrength(evidence);
 	}
 
@@ -193,8 +197,8 @@ struct DomainProbability {
 		return vector<string>{
 			domain.id,
 			domain.query,
-			to_string_with_precision(log(probability)),
-			to_string_with_precision(log(probability_random)),
+			to_string_with_precision(log_probability),
+			to_string_with_precision(log_probability_random),
 			to_string(n_elements),
 			to_string_with_precision(evidence),
 			evidence_strength,
@@ -249,8 +253,8 @@ vector<DomainProbability> LoadDomainProbabilities(const string& path) {
 		out.push_back(
 			DomainProbability(
 				domain,
-				exp(row["log_probability"].get<double>()),
-				exp(row["log_probability_random"].get<double>()),
+				row["log_probability"].get<double>(),
+				row["log_probability_random"].get<double>(),
 				row["n_elements"].get<size_t>()
 			)
 		);

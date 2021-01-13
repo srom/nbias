@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
+#include <utility>
 #include <boost/algorithm/string.hpp>
 #include <xtensor/xarray.hpp>
 #include "csv.hpp"
@@ -16,20 +17,24 @@ const double LOG_10 = log((double) 10);
 struct ProteinDomain {
 	string id;
 	string query;
+	string description;
 
-	ProteinDomain() :id{""}, query{""} {}
+	ProteinDomain() :id{""}, query{""}, description{""} {}
 
 	ProteinDomain(
 		const string& domain_id, 
-		const string& domain_query
+		const string& domain_query,
+		const string& domain_description = ""
 	) {
 		id = domain_id;
 		query = domain_query;
+		description = domain_description;
 	}
 
 	ProteinDomain(const ProteinDomain& d) {
 		id = d.id;
 		query = d.query;
+		description = d.description;
 	}
 };
 
@@ -197,6 +202,7 @@ struct DomainProbability {
 		return vector<string>{
 			domain.id,
 			domain.query,
+			domain.description,
 			to_string_with_precision(log_probability),
 			to_string_with_precision(log_probability_random),
 			to_string(n_elements),
@@ -209,6 +215,7 @@ struct DomainProbability {
 		return vector<string>{
 			"id",
 			"query",
+			"description",
 			"log_probability",
 			"log_probability_random",
 			"n_elements",
@@ -248,7 +255,8 @@ vector<DomainProbability> LoadDomainProbabilities(const string& path) {
 	for (CSVRow& row: reader) {
 		ProteinDomain domain(
 			row["id"].get<string>(),
-			row["query"].get<string>()
+			row["query"].get<string>(),
+			row["description"].get<string>()
 		);
 		out.push_back(
 			DomainProbability(
@@ -258,6 +266,18 @@ vector<DomainProbability> LoadDomainProbabilities(const string& path) {
 				row["n_elements"].get<size_t>()
 			)
 		);
+	}
+	return out;
+}
+
+unordered_map<string, pair<string, string>> LoadDomainMetadata(const string& path) {
+	CSVReader reader(path);
+	unordered_map<string, pair<string, string>> out;
+	for (CSVRow& row: reader) {
+		string domain_id = row["id"].get<string>();
+		string domain_query = row["query"].get<string>();
+		string domain_description = row["description"].get<string>();
+		out[domain_id] = make_pair(domain_query, domain_description);
 	}
 	return out;
 }

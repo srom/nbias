@@ -35,6 +35,9 @@ bool task_compute_domain_probabilities_per_assembly(
 	string sequencesFolder = dataFolder + "sequences/";
 	auto n_assemblies = assembly_ids.size();
 
+	string metadata_path = dataFolder + query + "_master.csv";
+	auto metadata = LoadDomainMetadata(metadata_path);
+
 	int i = 0;
 	for (auto& accession : assembly_ids) {
 		if (i == 0 || (i+1) % 100 == 0) {
@@ -73,7 +76,13 @@ bool task_compute_domain_probabilities_per_assembly(
 		writer << DomainProbability::RecordHeader();
 
 		vector<DomainProbability> records;
-		for (const ProteinDomain& domain : domains.Keys()) {
+		for (ProteinDomain& domain : domains.Keys()) {
+			if (metadata.find(domain.id) != metadata.end()) {
+				auto& [domain_query, domain_description] = metadata[domain.id];
+				domain.query = domain_query;
+				domain.description = domain_description;
+			}
+
 			xt::xarray<double> log_probabilities = xt::eval(
 				xt::log(domains.Probabilities(domain, gene_probs))
 			);
@@ -180,29 +189,19 @@ bool task_compute_domain_probabilities_per_phylum(
 		auto writer = make_csv_writer(of);
 		writer << DomainProbability::RecordHeader();
 
-		xt::xarray<double> uniform_log_prior = xt::eval(
-			xt::log(make_uniform_prior(n_assemblies))
-		);
-
 		vector<DomainProbability> records;
 		for (auto& domain : protein_domains) {
 			auto& domain_probs = protein_domain_probs[domain];
 			auto n_probs = domain_probs.size();
-			xt::xarray<double> log_probs = xt::zeros<double>({n_assemblies});
-			xt::xarray<double> log_probs_random = xt::zeros<double>({n_assemblies});
+			xt::xarray<double> log_probs = xt::zeros<double>({n_probs});
+			xt::xarray<double> log_probs_random = xt::zeros<double>({n_probs});
 			for (int ix = 0; ix < n_probs; ++ix) {
 				log_probs[ix] = domain_probs[ix].log_probability;
 				log_probs_random[ix] = domain_probs[ix].log_probability_random;
 			}
 
-			double log_prob = marginalization_log(
-				uniform_log_prior, 
-				log_probs
-			);
-			double log_prob_random = marginalization_log(
-				uniform_log_prior, 
-				log_probs_random
-			);
+			double log_prob = product_rule_log(log_probs);
+			double log_prob_random = product_rule_log(log_probs_random);
 
 			try {
 				DomainProbability record(
@@ -346,9 +345,143 @@ void compute_domain_probabilities(
 	cerr << "Processing of domain probabilities per phylum is complete" << endl;
 	cerr << "Elapsed: " << elapsed << " seconds" << endl;
 
-	// 
-	// 3) Compute global probability of domains.
 	//
+	// 3) Compute probability of domains per superkingdom.
+	//
+	cerr << "Processing of domain probabilities per superkingdom" << endl;
+	vector<string> superkingdoms;
+	unordered_map<string, vector<string>> phyla_per_superkingdom;
+	for (auto& phylum : phyla) {
+		auto assembly_id = assemblies_per_phylum[phylum][0];
+		Assembly& assembly = assemblies.Get(assembly_id);
+		const string superkingdom_raw = assembly.domain;
+		if (superkingdom_raw.empty()) {
+			continue;
+		}
+		string superkingdom = superkingdom_raw;
+		transform(
+			superkingdom.begin(), 
+			superkingdom.end(), 
+			superkingdom.begin(), 
+			::tolower
+		);
+		superkingdom[0] = toupper(superkingdom[0]);
+
+		if (phyla_per_superkingdom.find(superkingdom) == phyla_per_superkingdom.end()) {
+			phyla_per_superkingdom[superkingdom] = vector<string>{phylum};
+			superkingdoms.push_back(superkingdom);
+		} else {
+			phyla_per_superkingdom[superkingdom].push_back(phylum);
+		}
+	}
+
+	string superkingdom_folder = dataFolder + "superkingdom/";
+	filesystem::create_directory(superkingdom_folder);
+
+	for (auto& superkingdom : superkingdoms) {
+		string superkingdom_inner_folder = superkingdom_folder + "/" + superkingdom + "/";
+		filesystem::create_directory(superkingdom_inner_folder);
+
+		auto& superkingdom_phyla = phyla_per_superkingdom[superkingdom];
+		auto n_superkingdom_phyla = superkingdom_phyla.size();
+
+		set<ProteinDomain> protein_domains;
+		unordered_map<ProteinDomain, vector<DomainProbability>> protein_domain_probs;
+		for (auto& phylum : superkingdom_phyla) {
+			string phylum_lower = phylum;
+			transform(
+				phylum_lower.begin(), 
+				phylum_lower.end(), 
+				phylum_lower.begin(), 
+				::tolower
+			);
+			transform(
+				phylum_lower.begin(), 
+				phylum_lower.end(), 
+				phylum_lower.begin(), 
+				[](char ch) {
+				    return ch == ' ' ? '_' : ch;
+				}
+			);
+			string phylumDir = dataFolder + "phylum/" + phylum_lower + "/";
+			string phylum_domain_prob_path = (
+				phylumDir + 
+				phylum_lower + "_" + query + "_probability_" + tail + ".csv"
+			);
+			vector<DomainProbability> domains = LoadDomainProbabilities(
+				phylum_domain_prob_path
+			);
+			for (auto& domain_prob : domains) {
+				auto& domain = domain_prob.domain;
+				protein_domains.insert(domain);
+
+				if (protein_domain_probs.find(domain) == protein_domain_probs.end()) {
+					protein_domain_probs[domain] = vector<DomainProbability>{domain_prob};
+				} else {
+					protein_domain_probs[domain].push_back(domain_prob);
+				}
+			}
+		}
+
+		const string superkingdom_out_path = (
+			superkingdom_inner_folder + query + "_probability_" + tail + ".csv"
+		);
+		ofstream superkingdom_of(superkingdom_out_path);
+		auto writer = make_csv_writer(superkingdom_of);
+		writer << DomainProbability::RecordHeader();
+
+		xt::xarray<double> uniform_log_prior = xt::eval(
+			xt::log(make_uniform_prior(n_superkingdom_phyla))
+		);
+
+		vector<DomainProbability> records;
+		for (auto& domain : protein_domains) {
+			auto& domain_probs = protein_domain_probs[domain];
+			auto n_probs = domain_probs.size();
+			xt::xarray<double> log_probs = xt::zeros<double>({n_superkingdom_phyla});
+			xt::xarray<double> log_probs_random = xt::zeros<double>({n_superkingdom_phyla});
+			for (int ix = 0; ix < n_probs; ++ix) {
+				log_probs[ix] = domain_probs[ix].log_probability;
+				log_probs_random[ix] = domain_probs[ix].log_probability_random;
+			}
+
+			double log_prob = marginalization_log(
+				uniform_log_prior, 
+				log_probs
+			);
+			double log_prob_random = marginalization_log(
+				uniform_log_prior, 
+				log_probs_random
+			);
+
+			try {
+				DomainProbability record(
+					domain, 
+					log_prob, 
+					log_prob_random,
+					n_probs
+				);
+				records.push_back(record);
+			}
+			catch (exception& e) {
+				cerr << "Global computation | ";
+				cerr << "Exception: " << e.what() << endl;
+				throw;
+			}
+		}
+
+		sort(records.begin(), records.end(), greater<DomainProbability>()); 
+
+		for (auto& record : records) {
+			writer << record.Record();
+		}
+	}
+	cerr << "Processing of domain probabilities per superkingdom is complete" << endl;
+
+	//
+	// 4) Compute global probability of domains.
+	//
+	cerr << "Processing of domain probabilities globally" << endl;
 	set<ProteinDomain> protein_domains;
 	unordered_map<ProteinDomain, vector<DomainProbability>> protein_domain_probs;
 	for (auto& phylum : phyla) {

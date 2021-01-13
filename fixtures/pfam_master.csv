@@ -1,0 +1,10 @@
+id,query,description
+PF00001,7tm_1,7 transmembrane receptor (rhodopsin family)
+PF00002,7tm_2,7 transmembrane receptor (Secretin family)
+PF00003,7tm_3,7 transmembrane sweet-taste receptor of 3 GCPR
+PF00004,AAA,ATPase family associated with various cellular activities (AAA)
+PF00005,ABC_tran,ABC transporter
+PF00006,ATP-synt_ab,ATP synthase alpha/beta family; nucleotide-binding domain
+PF00007,Cys_knot,Cystine-knot domain
+PF00008,EGF,EGF-like domain
+PF00009,GTP_EFTU,Elongation factor Tu GTP binding domain

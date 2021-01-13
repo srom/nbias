@@ -39,7 +39,7 @@ xt::xarray<double> compute_probability_from_distance(const vector<double>& dista
 		return xt::eval((double) 1 - ((probabilities - norm_min) / (norm_max - norm_min)));
 	} else {
 		return xt::eval((probabilities - norm_min) / (norm_max - norm_min));
-	}	
+	}
 }
 
 class GeneProbabilies {

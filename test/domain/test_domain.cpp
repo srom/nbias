@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(TestProteinDomains, * utf::tolerance(0.00001))
 
 BOOST_AUTO_TEST_CASE(TestDomainProbability, * utf::tolerance(0.00001))
 {
-	ProteinDomain domain("PF05175", "MTS");
+	ProteinDomain domain("PF05175", "MTS", "Methyltransferase small domain");
 	DomainProbability domain_probability(domain, log(0.9), log(0.2), 10);
 
 	BOOST_TEST(domain_probability.evidence == 0.653213);
@@ -53,24 +53,26 @@ BOOST_AUTO_TEST_CASE(TestDomainProbability, * utf::tolerance(0.00001))
 	BOOST_TEST(g == true);
 
 	auto record_header = DomainProbability::RecordHeader();
-	BOOST_TEST(record_header.size() == 7);
+	BOOST_TEST(record_header.size() == 8);
 	BOOST_TEST(record_header[0] == "id");
 	BOOST_TEST(record_header[1] == "query");
-	BOOST_TEST(record_header[2] == "log_probability");
-	BOOST_TEST(record_header[3] == "log_probability_random");
-	BOOST_TEST(record_header[4] == "n_elements");
-	BOOST_TEST(record_header[5] == "evidence");
-	BOOST_TEST(record_header[6] == "evidence_strength");
+	BOOST_TEST(record_header[2] == "description");
+	BOOST_TEST(record_header[3] == "log_probability");
+	BOOST_TEST(record_header[4] == "log_probability_random");
+	BOOST_TEST(record_header[5] == "n_elements");
+	BOOST_TEST(record_header[6] == "evidence");
+	BOOST_TEST(record_header[7] == "evidence_strength");
 
 	auto record = domain_probability.Record();
-	BOOST_TEST(record.size() == 7);
+	BOOST_TEST(record.size() == 8);
 	BOOST_TEST(record[0] == "PF05175");
 	BOOST_TEST(record[1] == "MTS");
-	BOOST_TEST(record[2] == "-0.10536052");
-	BOOST_TEST(record[3] == "-1.60943791");
-	BOOST_TEST(record[4] == "10");
-	BOOST_TEST(record[5] == "0.65321251");
-	BOOST_TEST(record[6] == "Substantial");
+	BOOST_TEST(record[2] == "Methyltransferase small domain");
+	BOOST_TEST(record[3] == "-0.10536052");
+	BOOST_TEST(record[4] == "-1.60943791");
+	BOOST_TEST(record[5] == "10");
+	BOOST_TEST(record[6] == "0.65321251");
+	BOOST_TEST(record[7] == "Substantial");
 
 	// Probability <= 0 or > 1: throw runtime error.
 	BOOST_CHECK_THROW(DomainProbability(domain, log(0.0), log(0.2), 5), runtime_error);
@@ -87,8 +89,24 @@ BOOST_AUTO_TEST_CASE(TestLoadDomainProbabilities, * utf::tolerance(0.00001)) {
 	size_t ix = 794;
 	BOOST_TEST(domains[ix].domain.id == "PF06481");
 	BOOST_TEST(domains[ix].domain.query == "COX_ARM");
+	BOOST_TEST(domains[ix].domain.description == "COX Aromatic Rich Motif");
 	BOOST_TEST(domains[ix].log_probability == log(0.692109));
 	BOOST_TEST(domains[ix].log_probability_random == log(0.611623));
 	BOOST_TEST(domains[ix].evidence == 0.0536908);
 	BOOST_TEST(domains[ix].evidence_strength == "Weak");
+}
+
+BOOST_AUTO_TEST_CASE(TestLoadDomainMetadata, * utf::tolerance(0.00001)) {
+	string path = "../fixtures/pfam_master.csv";
+	auto metadata = LoadDomainMetadata(path);
+
+	BOOST_TEST(metadata.size() == 9);
+
+	auto& [query, description] = metadata["PF00004"];
+
+	BOOST_TEST(query == "AAA");
+	BOOST_TEST((
+		description == 
+		"ATPase family associated with various cellular activities (AAA)"
+	));
 }

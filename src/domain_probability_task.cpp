@@ -379,7 +379,17 @@ void compute_domain_probabilities(
 	filesystem::create_directory(superkingdom_folder);
 
 	for (auto& superkingdom : superkingdoms) {
-		string superkingdom_inner_folder = superkingdom_folder + "/" + superkingdom + "/";
+		string superkingdom_lower = superkingdom;
+		transform(
+			superkingdom_lower.begin(), 
+			superkingdom_lower.end(), 
+			superkingdom_lower.begin(), 
+			::tolower
+		);
+		
+		string superkingdom_inner_folder = (
+			superkingdom_folder + "/" + superkingdom_lower + "/"
+		);
 		filesystem::create_directory(superkingdom_inner_folder);
 
 		auto& superkingdom_phyla = phyla_per_superkingdom[superkingdom];
@@ -424,7 +434,8 @@ void compute_domain_probabilities(
 		}
 
 		const string superkingdom_out_path = (
-			superkingdom_inner_folder + query + "_probability_" + tail + ".csv"
+			superkingdom_inner_folder + 
+			superkingdom_lower + "_" + query + "_probability_" + tail + ".csv"
 		);
 		ofstream superkingdom_of(superkingdom_out_path);
 		auto writer = make_csv_writer(superkingdom_of);

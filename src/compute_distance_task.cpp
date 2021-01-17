@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <cmath>
 #include <chrono>
 #include <future>
 #include <boost/iostreams/filtering_streambuf.hpp>
@@ -65,14 +66,20 @@ bool task_compute_distance(const int task_nb, const vector<string>& assembly_ids
 		ofstream of(outputPath);
 		auto writer = make_csv_writer(of);
 
-		vector<string> headers{"protein_id", "distance", "probability"};
+		vector<string> headers{"protein_id", "distance"};
 		writer << headers;
 
 		for (int n = 0; n < distances.size(); ++n) {
 			string protein_id = protein_ids[n];
 			double distance = distances[n];
-			double probability = 1.0 - distance;
-			vector<string> row{protein_id, to_string(distance), to_string(probability)};
+			if (isnan(distance)) {
+				cerr << "Distance: NaN value encountered for accession " << accession << endl;
+				continue;
+			} else if (isinf(distance)) {
+				cerr << "Distance: Inf value encountered for accession " << accession << endl;
+				continue;
+			}
+			vector<string> row{protein_id, to_string(distance)};
 			writer << row;
 		}
 	}

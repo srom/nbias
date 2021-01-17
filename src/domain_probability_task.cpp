@@ -53,47 +53,48 @@ bool task_compute_domain_probabilities_per_assembly(
 			sequencesFolder + accession + "/" + 
 			accession + "_tri_nucleotide_distance_to_mean.csv"
 		);
-		ifstream gene_probs_file(gene_probs_path); 
-		GeneProbabilies gene_probs(gene_probs_file, tail);
 
-		string protein_domains_path = (
-			sequencesFolder + accession + "/" + 
-			accession + "_" + query + ".csv.gz"
-		);
-		ifstream protein_domains_file(protein_domains_path);
-		boost::iostreams::filtering_streambuf<boost::iostreams::input> inbuf;
-		inbuf.push(boost::iostreams::gzip_decompressor());
-		inbuf.push(protein_domains_file);
-		istream instream(&inbuf);
-		ProteinDomains domains(instream);
+		try {
+			ifstream gene_probs_file(gene_probs_path);
 
-		string assembly_domain_prob_out_path = (
-			sequencesFolder + accession + "/" + 
-			accession + "_" + query + "_probability_" + tail + ".csv"
-		);
-		ofstream of(assembly_domain_prob_out_path);
-		auto writer = make_csv_writer(of);
-		writer << DomainProbability::RecordHeader();
-
-		vector<DomainProbability> records;
-		for (ProteinDomain& domain : domains.Keys()) {
-			if (metadata.find(domain.id) != metadata.end()) {
-				auto& [domain_query, domain_description] = metadata[domain.id];
-				domain.query = domain_query;
-				domain.description = domain_description;
-			}
-
-			xt::xarray<double> log_probabilities = xt::eval(
-				xt::log(domains.Probabilities(domain, gene_probs))
+			GeneProbabilies gene_probs(gene_probs_file, tail);
+			
+			string protein_domains_path = (
+				sequencesFolder + accession + "/" + 
+				accession + "_" + query + ".csv.gz"
 			);
-			xt::xarray<double> log_probabilities_random = xt::eval(
-				xt::log(domains.Probabilities(domain, gene_probs, true))
+			ifstream protein_domains_file(protein_domains_path);
+			boost::iostreams::filtering_streambuf<boost::iostreams::input> inbuf;
+			inbuf.push(boost::iostreams::gzip_decompressor());
+			inbuf.push(protein_domains_file);
+			istream instream(&inbuf);
+			ProteinDomains domains(instream);
+
+			string assembly_domain_prob_out_path = (
+				sequencesFolder + accession + "/" + 
+				accession + "_" + query + "_probability_" + tail + ".csv"
 			);
+			ofstream of(assembly_domain_prob_out_path);
+			auto writer = make_csv_writer(of);
+			writer << DomainProbability::RecordHeader();
 
-			double log_prob = product_rule_log(log_probabilities);
-			double log_prob_random = product_rule_log(log_probabilities_random);
+			vector<DomainProbability> records;
+			for (ProteinDomain& domain : domains.Keys()) {
+				if (metadata.find(domain.id) != metadata.end()) {
+					auto& [domain_query, domain_description] = metadata[domain.id];
+					domain.query = domain_query;
+					domain.description = domain_description;
+				}
 
-			try {
+				xt::xarray<double> probs = domains.Probabilities(domain, gene_probs);
+				xt::xarray<double> probs_random = domains.Probabilities(domain, gene_probs, true);
+
+				xt::xarray<double> log_probabilities = xt::eval(xt::log(probs));
+				xt::xarray<double> log_probabilities_random = xt::eval(xt::log(probs_random));
+
+				double log_prob = product_rule_log(log_probabilities);
+				double log_prob_random = product_rule_log(log_probabilities_random);
+
 				DomainProbability record(
 					domain, 
 					log_prob, 
@@ -102,17 +103,17 @@ bool task_compute_domain_probabilities_per_assembly(
 				);
 				records.push_back(record);
 			}
-			catch (exception& e) {
-				cerr << "Thread " << task_nb << " | Assembly: " << accession << " | ";
-				cerr << "Exception: " << e.what() << endl;
-				throw;
+
+			sort(records.begin(), records.end(), greater<DomainProbability>()); 
+
+			for (auto& record : records) {
+				writer << record.Record();
 			}
 		}
-
-		sort(records.begin(), records.end(), greater<DomainProbability>()); 
-
-		for (auto& record : records) {
-			writer << record.Record();
+		catch (exception& e) {
+			cerr << "Thread " << task_nb << " | Assembly: " << accession << " | ";
+			cerr << "Exception: " << e.what() << endl;
+			throw;
 		}
 	}
 

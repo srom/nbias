@@ -181,13 +181,13 @@ struct DomainProbability {
 		const size_t n_el
 	) {
 		if (isinf(log_p) || isinf(log_pr)) {
-			throw runtime_error("DomainProbability: -inf log probability encountered");
+			throw runtime_error("DomainProbability: -inf log probability encountered for domain " + d.query);
 		} else if (isnan(log_p) || isnan(log_pr)) {
-			throw runtime_error("DomainProbability: NaN log probability encountered");
+			throw runtime_error("DomainProbability: NaN log probability encountered for domain " + d.query);
 		} else if (log_p > 0 || log_pr > 0) {
-			throw runtime_error("DomainProbability: log probability > 0 encountered");
+			throw runtime_error("DomainProbability: log probability > 0 encountered for domain " + d.query);
 		} else if (n_el == 0) {
-			throw runtime_error("DomainProbability: n_elements is zero");
+			throw runtime_error("DomainProbability: n_elements is zero for domain " + d.query);
 		}
 
 		domain = ProteinDomain(d);

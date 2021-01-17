@@ -13,33 +13,18 @@ using namespace std;
 xt::xarray<double> compute_probability_from_distance(const vector<double>& distances, const bool left_tail) {
 	xt::xarray<double> probabilities = xt::zeros<double>({distances.size()});
 	for (int i = 0; i < distances.size(); ++i) {
-		auto d = distances[i];
-		if (d > (double) 0) {
-			probabilities[i] = log(distances[i]);
+		double prob;
+		if (left_tail) {
+			prob = (double) 1.0 - distances[i];
 		} else {
-			// Proxy for -infinity:
-			probabilities[i] = (double) -10;
+			prob = distances[i];
 		}
+		if (isnan(prob)) {
+			throw runtime_error("compute_probability_from_distance: NaN values encountered");
+		}
+		probabilities[i] = prob;
 	}
-
-	double min_val = xt::amin(probabilities)[0];
-	double max_val = xt::amax(probabilities)[0];
-
-	double norm_min = floor(min_val);
-	double norm_max = (double) 0;
-
-	while (min_val <= norm_min) {
-		norm_min -= 0.0001;
-	}
-	while (max_val >= norm_max) {
-		norm_max += 0.0001;
-	}
-
-	if (left_tail) {
-		return xt::eval((double) 1 - ((probabilities - norm_min) / (norm_max - norm_min)));
-	} else {
-		return xt::eval((probabilities - norm_min) / (norm_max - norm_min));
-	}
+	return probabilities;
 }
 
 class GeneProbabilies {
@@ -66,9 +51,9 @@ class GeneProbabilies {
 				}
 				vector<string> elements;
 				boost::split(elements, line, boost::is_any_of(","));
-				if (elements.size() != 3) {
+				if (elements.size() != 2) {
 					throw runtime_error(
-						"GeneProbabilies: 3 columns expected "
+						"GeneProbabilies: 2 columns expected "
 						"but got: " + to_string(elements.size())
 					);
 				}

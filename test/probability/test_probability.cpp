@@ -183,9 +183,9 @@ BOOST_AUTO_TEST_CASE(TestComputeProbabilityFromDistance, * utf::tolerance(0.0000
 	BOOST_TEST(p.size() == 3);
 	BOOST_TEST(q.size() == 3);
 
-	BOOST_TEST(p[0] == 0.0512933);
-	BOOST_TEST(p[1] == 0.0833816);
-	BOOST_TEST(p[2] == 0.3424903);
+	BOOST_TEST(p[0] == 0.05);
+	BOOST_TEST(p[1] == 0.08);
+	BOOST_TEST(p[2] == 0.29);
 
 	BOOST_TEST(p[0] == 1.0 - q[0]);
 	BOOST_TEST(p[1] == 1.0 - q[1]);
@@ -201,8 +201,8 @@ BOOST_AUTO_TEST_CASE(TestGeneProbabilities, * utf::tolerance(0.00001))
 	GeneProbabilies p(f1, "left");
 	GeneProbabilies q(f2, "right");
 
-	BOOST_TEST(p["BAF86014.1"] == 0.629812);
-	BOOST_TEST(q["BAF86014.1"] == 1.0 - 0.629812);
+	BOOST_TEST(p["BAF86014.1"] == 1.0 - 0.080520);
+	BOOST_TEST(q["BAF86014.1"] == 0.080520);
 
 	BOOST_TEST(q["BAF86014.1"] == q.Get("BAF86014.1"));
 	BOOST_TEST(q["BAF86014.1"] != q.Get("BAF86014.1", true));
@@ -214,8 +214,8 @@ BOOST_AUTO_TEST_CASE(TestGeneProbabilities, * utf::tolerance(0.00001))
 	BOOST_TEST(q.Values().size() == 4'717);
 	BOOST_TEST(q.RandomValues().size() == 4'717);
 
-	BOOST_TEST(p.Values()[4'716] == 0.648673);
-	BOOST_TEST(q.Values()[4'716] == 1.0 - 0.648672);
+	BOOST_TEST(p.Values()[4'716] == 1.0 - 0.074669);
+	BOOST_TEST(q.Values()[4'716] == 0.074669);
 
 	BOOST_TEST(p.Keys().size() == 4'717);
 	BOOST_TEST(q.Keys().size() == 4'717);

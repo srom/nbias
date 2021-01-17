@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(TestProteinDomains, * utf::tolerance(0.00001))
 
 	xt::xarray<double> probabilities = domains.Probabilities(domain, probs);
 	BOOST_TEST(probabilities.size() == 11);
-	BOOST_TEST(probabilities[10] == 0.641768);
+	BOOST_TEST(probabilities[10] == 0.92324);
 
 	xt::xarray<double> rand_probabilities = domains.Probabilities(domain, probs, true);
 	BOOST_TEST(rand_probabilities.size() == 11);

@@ -68,7 +68,7 @@ namespace std {
 		size_t operator()(const ProteinDomain& pd) const {
 		  	return hash<string>()(pd.id);
 		}
-  };
+  	};
 }
 
 class ProteinDomains {

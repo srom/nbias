@@ -47,7 +47,7 @@ double _kl_divergence_double_ec(
 	if (error_check) {
 		kl_divergence_argument_check(p, q);
 	}
-	return xt::sum(p * (xt::nan_to_num(xt::log(p)) - xt::log(q)))[0];
+	return xt::sum(p * (xt::nan_to_num(xt::log2(p)) - xt::log2(q)))[0];
 }
 
 xt::xarray<double> _kl_divergence_array_ec(
@@ -59,7 +59,7 @@ xt::xarray<double> _kl_divergence_array_ec(
 	if (error_check) {
 		kl_divergence_argument_check(p, q);
 	}
-	return xt::eval(xt::sum(p * (xt::nan_to_num(xt::log(p)) - xt::log(q)), move(axis)));
+	return xt::eval(xt::sum(p * (xt::nan_to_num(xt::log2(p)) - xt::log2(q)), move(axis)));
 }
 
 void jensen_shannon_distance_argument_check(

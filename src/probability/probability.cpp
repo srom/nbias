@@ -1,6 +1,6 @@
 /*
-Implementation of the probability's product rule and marginalization 
-for independent variables.
+Implementation of probability's product rule (for independent variables) 
+and marginalization.
 */
 #include <utility>
 #include <xtensor/xarray.hpp>

@@ -17,11 +17,11 @@ BOOST_AUTO_TEST_CASE(TestKLDivergence, * utf::tolerance(0.00001))
 
 	double v = kl_divergence(p, q);
 
-	BOOST_TEST(v == 0.5108256);
+	BOOST_TEST(v == 0.7369656);
 
 	double v2 = kl_divergence(q, p);
 
-	BOOST_TEST(v2 == 0.3680642);
+	BOOST_TEST(v2 == 0.5310044);
 
 	xt::xarray<double> p1 = {
 		{0.5, 0.5},
@@ -34,8 +34,8 @@ BOOST_AUTO_TEST_CASE(TestKLDivergence, * utf::tolerance(0.00001))
 
 	xt::xarray<double> res1 = kl_divergence(p1, q1, 1);
 
-	BOOST_TEST(res1[0] == 0.5108256);
-	BOOST_TEST(res1[1] == 0.3680642);
+	BOOST_TEST(res1[0] == 0.7369656);
+	BOOST_TEST(res1[1] == 0.5310044);
 
 	xt::xarray<double> p0 = {
 		{0.5, (double) 9 / 10},
@@ -48,13 +48,13 @@ BOOST_AUTO_TEST_CASE(TestKLDivergence, * utf::tolerance(0.00001))
 	
 	xt::xarray<double> res0 = kl_divergence(p0, q0, 0);
 
-	BOOST_TEST(res0[0] == 0.5108256);
-	BOOST_TEST(res0[1] == 0.3680642);
+	BOOST_TEST(res0[0] == 0.7369656);
+	BOOST_TEST(res0[1] == 0.5310044);
 
 	xt::xarray<double> a = {1.0, 0.0};
 	xt::xarray<double> b = {0.5, 0.5};
 
-	BOOST_TEST(kl_divergence(a, b) == 0.6931472);
+	BOOST_TEST(kl_divergence(a, b) == 1.0);
 
 	// Throw: values in q are not allowed to be zero
 	BOOST_CHECK_THROW(kl_divergence(b, a), runtime_error);
@@ -108,12 +108,12 @@ BOOST_AUTO_TEST_CASE(TestJensenShannonDistance, * utf::tolerance(0.00001)) {
 
 	double v = jensen_shannon_distance(p, q);
 
-	BOOST_TEST(v == 0.3189815);
+	BOOST_TEST(v == 0.3831359);
 
 	// distance is symmetric
 	double v_sym = jensen_shannon_distance(q, p);
 
-	BOOST_TEST(v_sym == 0.3189815);
+	BOOST_TEST(v_sym == 0.3831359);
 
 	xt::xarray<double> p1 = {
 		{0.5, 0.5},
@@ -126,19 +126,24 @@ BOOST_AUTO_TEST_CASE(TestJensenShannonDistance, * utf::tolerance(0.00001)) {
 
 	xt::xarray<double> res1 = jensen_shannon_distance(p1, q1, 1);
 
-	BOOST_TEST(res1[0] == 0.3189815);
-	BOOST_TEST(res1[1] == 0.3189815);
+	BOOST_TEST(res1[0] == 0.3831359);
+	BOOST_TEST(res1[1] == 0.3831359);
 
 	xt::xarray<double> res1_sym = jensen_shannon_distance(q1, p1, 1);
 
-	BOOST_TEST(res1_sym[0] == 0.3189815);
-	BOOST_TEST(res1_sym[1] == 0.3189815);
+	BOOST_TEST(res1_sym[0] == 0.3831359);
+	BOOST_TEST(res1_sym[1] == 0.3831359);
 
 	xt::xarray<double> a = {1.0, 0.0};
 	xt::xarray<double> b = {0.5, 0.5};
 
-	BOOST_TEST(jensen_shannon_distance(a, b) == 0.4645014);
-	BOOST_TEST(jensen_shannon_distance(b, a) == 0.4645014);
+	BOOST_TEST(jensen_shannon_distance(a, b) == 0.5579230);
+	BOOST_TEST(jensen_shannon_distance(b, a) == 0.5579230);
+
+	xt::xarray<double> aa = {1.0, 0.0};
+	xt::xarray<double> bb = {0.0, 1.0};
+
+	BOOST_TEST(jensen_shannon_distance(aa, bb) == 1.0);
 
 	// All values are zero: throw
 	xt::xarray<double> pzero = {0.0, 0.0};

@@ -9,6 +9,7 @@
 \usepackage{booktabs}
 \usepackage[svgnames,table]{xcolor}
 \usepackage{pifont}
+\usepackage{hyperref}
 
 \graphicspath{ {./diagrams/} }
 
@@ -16,7 +17,7 @@
 \maketitle
 
 \begin{abstract}
-I computed the genome-wide and per-gene tri-nucleotide distributions of 20,000 strains of bacterial and archaeal species. Genes were further decomposed into protein domains from Pfam \& TIGR. I seeked to understand whether certain domains had distributions consistently similar - or conversely dissimilar - to their genome's mean distribution. A handful of domains have a distribution systematically close to the mean, the strongest evidence of which are for tRNA synthetase domains such as ``tRNA synt 1''. On the other hand, distributions of domains related to ribosome structure such as ``Ribosomal L23'' are shown to be consistently different to their genome-wide mean.
+I computed the genome-wide and per-gene tri-nucleotide distributions of 20,000 strains of bacterial and archaeal species. Genes were further decomposed into protein domains from Pfam \& TIGR. I seeked to understand whether certain domains had distributions consistently similar - or conversely dissimilar - to their genome mean distribution. A handful of domains have a distribution systematically close to the mean, the strongest evidence of which are for tRNA synthetase domains such as ``tRNA synt 1''. On the other hand, distributions of domains related to ribosome structure such as ``Ribosomal L23'' are shown to be consistently different to their genome-wide mean. In both cases, most top domains appear related to translational activities.
 \end{abstract}
 
 \section{Goal}
@@ -53,7 +54,7 @@ JSD(P, Q) &= \sqrt{\frac{1}{2}D_{KL}(P, M) + \frac{1}{2}D_{KL}(Q, M)} \\
 \end{split}
 \end{equation}
 %
-Example: the distribution of distances between E.~coli genes' distributions and its genome-wide distribution -- along with the distance to two other genome-wide distributions -- are shown in figure~\ref{fig:e_coli_distances}.
+Example: the distribution of distances between E.~coli's gene distributions and its genome-wide distribution -- along with the distance to two other genome-wide distributions -- are shown in figure~\ref{fig:e_coli_distances}.
 
 \pagebreak
 
@@ -100,7 +101,7 @@ $\mathscr{E_{\delta}} \mid a$ is the event ``Protein domain $\delta$ is consiste
 %
 That is, $\mathscr{E_{\delta}} \mid a$ is the intersection of events $D_{a,g} \mid\mid D_a$, $\forall g \in G_{a, \delta}$.\\
 \\
-Assuming that events $D_{a,g} \mid\mid D_a$ are independent from each others when conditioning on $a$, it follows that $P(\mathscr{E_{\delta}} \mid a)$ is defined as:
+Assuming that events $D_{a,g} \mid\mid D_a$ are independent from each others when conditioning on $a$, it follows~\cite{dupre2009new} that $P(\mathscr{E_{\delta}} \mid a)$ is defined as:
 %
 \begin{equation}
 P(\mathscr{E_{\delta}} \mid a) = \prod\limits_{g \in G_{a, \delta}} P(D_{a,g} \mid\mid D_a)
@@ -118,9 +119,9 @@ P(\mathscr{E_{\delta}} \mid \phi) = \prod\limits_{a \in \phi} P(\mathscr{E_{\del
 Probabilities for other phylogenetic events such as class, family or genus can be derived in much the same way.
 
 \paragraph{Overall aggregation}
-Last but not least, we want to aggregate protein domain events at superkingdom level or even prokaryotic level. Extra care must be taken to avoid biases due to evolutionary history: we ought to control for the phylogeny.\\
+Lastly, we want to aggregate protein domain events at superkingdom or even prokaryotic level. Extra care must be taken to avoid biases due to evolutionary history: we ought to control for the phylogeny.\\
 \\
-One common way to do so is to compute probabilities separately for each phylum using equation~\ref{eq:phylum_probability}, before aggregating values in a weighted sum:
+One common way~\cite{greenland1999confounding} to do so is to compute probabilities separately for each phylum using equation~\ref{eq:phylum_probability}, before aggregating values in a weighted sum:
 %
 \begin{equation}
 P(\mathscr{E_{\delta}}) = \sum\limits_{\phi} P(\mathscr{E_{\delta}} \mid \phi)P(\phi)
@@ -134,13 +135,15 @@ With equation~\ref{eq:overall_probability}, we have defined a way to quantify th
 \\
 We wish to define the probability $P_{null}(\cdot)$, before comparing it against the actual likeliness computed previously. All we have to do is to assign a probability to the event $D_{a,g} \mid\mid D_a$ for the null hypothesis. All other probabilities can be computed with equations~\ref{eq:assembly_probability}, \ref{eq:phylum_probability} and \ref{eq:overall_probability}.\\
 \\
-A simple way to define $P_{null}(D_{a,g} \mid\mid D_a)$ is to set it to the mean of $P(D_{a,g} \mid\mid D_a)$, $\forall g$ in assembly $a$:
+A simple way to define $P_{null}(D_{a,g} \mid\mid D_a)$ is to set it to the mean of $P(D_{a,g}~\mid\mid~D_a)$:
 %
 \begin{equation}
 P_{null}(D_{a,g} \mid\mid D_a) = \frac{1}{N}\sum\limits_{g^{\prime}=1}^{N} P(D_{a,g^{\prime}} \mid\mid D_a)
 \end{equation}
 %
-All genes in an assembly get the same ``null value''. If a protein domain $\delta$ is consistently higher than the mean, then it's a sign that we might have found an interesting domain. On the other end, if the protein domain is always lower than the mean, or is sometime lower, sometime higher, then we can easily discard it. Figure~\ref{fig:trna_synt_1g_dist} shows an example for domain ``tRNA Synt 1g''.
+Note that all genes in an assembly get the same ``null value''.\\
+\\
+If a protein domain $\delta$ is consistently higher than the mean, then it's a sign that we might have found an interesting domain. On the other end, if the protein domain is always lower than the mean, or is alternating, then we can easily discard it. Figure~\ref{fig:trna_synt_1g_dist} shows an example for domain ``tRNA Synt 1g''.
 
 \pagebreak
 
@@ -185,7 +188,8 @@ A common scale of interpretation is given in table~\ref{table:evidence}.
 
 \section{Results}
 
-Tables \ref{table:pfam_left_overall} and \ref{table:pfam_right_overall} provide a list of top Pfam protein domains for events $\mathscr{E_{\delta}}$ (close to the mean) and $\overline{\mathscr{E_{\delta}}}$ (far from the mean), respectively.
+\paragraph{Pfam}
+Tables \ref{table:pfam_left_overall} and \ref{table:pfam_right_overall} provide a list of Pfam domains with substantial evidence for events $\mathscr{E_{\delta}}$ (close to the mean) and $\overline{\mathscr{E_{\delta}}}$ (far from the mean).
 
 \begin{table}[!h]
 	\centering
@@ -244,9 +248,37 @@ Tables \ref{table:pfam_left_overall} and \ref{table:pfam_right_overall} provide 
     \label{table:pfam_right_overall}
 \end{table}
 
+\pagebreak
+
+\paragraph{TIGRFAM}
+A single TIGR domain with substantial evidence or higher is showing up for both events $\mathscr{E_{\delta}}$ and $\overline{\mathscr{E_{\delta}}}$:
+%
+\begin{itemize}
+  \item Close to the mean: Small GTP-binding protein domain (TIGR00231).
+  \item Far from the mean: Ribosomal protein L29 (TIGR00012).
+\end{itemize}
+%
+It's worth mentioning that the next top results for $\mathscr{E_{\delta}}$ are a litany of tRNA ligase domains, although all of them have weak stength of evidence. Similarly, there are some more ribosomal proteins in the next top results for $\overline{\mathscr{E_{\delta}}}$.\\
+\\
+More granular results are also available at superkingdom and phylum level and show very similar trend, usually with a larger set of substantial domains.
+
+\pagebreak
+
 \section{Discussion}
 
-Hmm
+We set out to determine whether certain protein domains have a distribution of tri-nucleotides consistently close to (or far from) their genome-wide distribution. Our results seem to suggest that a handful of proteins actually do.\\
+\\
+Interestingly, most protein domains in both tails of the distribution (close and far from the genome mean) appear related to translational activities, suggesting that we may be observing a single mechanism at play.\\
+\\
+That being said, we know that domains close to the mean have a distribution dependent on their assembly (by definition), but we cannot say the same for "far away" domains: perhaps all the ribosomal proteins are far from their genome-wide mean because they all are similar in composition, notwithstanding their assembly or phylum - something we could easily verify.\\
+\\
+Our analysis so far has been focusing on \textit{if}, not \textit{why} such patterns exist.\\
+\\
+Our approach using a null hypothesis as a baseline for comparison should have normalized any irrelevant differences between domains, such as how many times they appear in a genome, or whether or not they appear within short or long sequences. However, it would be good to double check if there is a correlation between top results and gene expression. I've checked so on the previous smaller dataset, and it wasn't the case, but I'll check again.\\
+\\
+If these simple sanity checks come back negative, then what could be causing these conserved tri-nucleotide distributions to occur?\\
+\\
+Antoine suggested it may have something to do with \textit{expression robustness}: all of these domains are bottlenecks to the creation of other proteins, so it could be that such tri-nucleotide disstribution makes their identification seamless. What experiment could we derive to test that hypothesis?
 
 \pagebreak
 

@@ -1,0 +1,70 @@
+\title{A short review of tRNA synthetases \& other self-regulating RNA-binding proteins}
+\author{Romain Strock}
+\date{\today}
+
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[svgnames,table]{xcolor}
+\usepackage{pifont}
+\usepackage{hyperref}
+
+\graphicspath{ {./figures/} }
+
+\begin{document}
+\maketitle
+
+\section{Review}
+
+\paragraph{Textbook tRNA synthetases}
+The main purpose of aminoacyl-tRNA synthetases (often abbreviated aaRS) is to attach the appropriate amino acid onto its relevant tRNA. aaRS proteins depend on ATP to perform their task. They bind to the relevant amino acid and tRNA and perform the overall reaction:
+%
+\begin{equation}
+\textnormal{Amino Acid} + \textnormal{tRNA} + \textnormal{ATP} \to \,\,\textnormal{Aminoacyl-tRNA} + \textnormal{AMP} + \textnormal{PPi}
+\end{equation}
+%
+There are two distinct classes of aaRS -- class I and class II -- which catalyze the same reaction but have distinct structures~\cite{ibba2000aminoacyl}.\\
+\\
+Prokaryotes often have less than 20 aaRS proteins, in which case a different protein chemically modifies the ``incorrect'' amino acid in place.~\cite{molecular_biology_of_the_cell_5th}
+
+\paragraph{aaRS proteins bind their own mRNA}
+It's been shown in~\cite{levi2019mrna} that HisRS in \textit{S.cerevisiae} bind to its own mRNA through its anticodon-binding domain. HisRS also binds to other mRNA molecules, but it binds an order of magnitude more often to its own. HisRS binds to mRNA on a region which is very similar to $\textnormal{tRNA}^{\textnormal{His}}$ anticodon region.\\
+\\
+The binding of HisRS to its own mRNA inhibits HisRS translation, in response to $\textnormal{tRNA}^{\textnormal{His}}$ levels. For example, when histidine is scarce, a separate pathway causes proteins with domain Gcn2 to bind to uncharged $\textnormal{tRNA}^{\textnormal{His}}$. In turn, a lower amount of uncharged $\textnormal{tRNA}^{\textnormal{His}}$ available means more chance for HisRS to bind to its own mRNA, reducing translation levels. The exact mechanisms of translation regulation are yet to be explored.\\
+\\
+Similar results have been shown (in the early 80s no less) for HisRS and ThrRS in \textit{Escherichia coli} and \textit{Salmonella typhimurium} \cite{ames1983leader}\cite{graffe1992specificity}\cite{romby1996expression}.
+
+\paragraph{Other RNA-binding proteins self-regulate via mRNA binding}
+tRNA synthetases are not the only RNA-binding proteins making use of their nucleotide-binding domains capabilities to self-regulate.\\
+\\
+Several ribosomal proteins are known to use a similar feedback regulation, for example ribosomal protein S4 and S7 in \textit{E. coli} use a binding site on their own gene homologous to their rRNA binding site~\cite{nomura1980feedback}.\\
+\\
+Ribosomal protein S14 is also known to bind to its own pre-mRNA in \textit{S. cerevisiae}~\cite{fewell1999ribosomal}. A recent paper shows similar results for 95 ribosomal proteins, with binding occuring in the 5' UTR region of their own mRNA~\cite{roy2020autoregulation}.\\
+\\
+I stumbled upon an interesting example in the analysis results for \textit{E. coli K-12}: the domain with strongest evidence for being consistently close to its genome tri-nucleotide mean is ``HTH 1'', an RNA-binding domain. Among genes containing this domain in \textit{E. coli}, the one with the closest distribution to the mean is \textit{cysB}. A quick search prompted a 1986 paper~\cite{bielinska1986regulation} showing that \textit{cysB} is self-regulating its own transcription by binding to its gene promoter.
+
+\paragraph{Helicase protein \textit{Dhh1p} in yeast can sense codon optimality}
+Protein \textit{Dhh1p} in \textit{S. cerevisiae} preferentially binds to mRNA with low codon optimality~\cite{radhakrishnan2016dead}, as measured with the tRNA Adaptation Index (tAI~\cite{reis2004solving}). The actual binding mechanism is not explained in any detail.
+
+\pagebreak
+
+\section{Discussion}
+
+There is a common pattern emerging: protein equipped with RNA-binding domains often seem to be able to self-regulate by binding to their own gene or mRNA. Such binding often seem to occur on an a piece of mRNA whose sequence is homologous to the RNA being typically bound by the protein (e.g. tRNA or rRNA).\\
+\\
+Although binding happens on such RNA-mimic patterns, evidence from our analysis seem to suggest that the tri-nucleotide distribution of a CDS may also play a role: proteins with an RNA-binding domain and a specific tri-nucleotide distribution may be good candidate for self-regulation.\\
+\\
+For example, using this ``model'', I was able to predict that protein \textit{cysB} was likely self-regulating (because it contains an RNA-binding domain and follows the mean tri-nucleotide distribution of its genome), which was confirmed by the litterature.\\
+\\
+The helicase example seems to suggest that some proteins are able to sense specific distributions of nucleotides. Since \textit{Dhh1p} is able to sense codon non-optimality, there are reasons to think that ribosomal proteins may be able to sense codon optimality, or aaRS proteins may be able to sense a particular ``mean'' distribution.\\
+\\
+Perhaps such sensing helps quickly discriminating candidate mRNA molecules?
+
+\pagebreak
+
+\bibliographystyle{abbrv}
+\bibliography{trna_synt_review}
+
+\end{document}

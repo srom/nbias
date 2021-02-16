@@ -78,8 +78,8 @@ string ShuffleCodons(const string& sequence, const int seed = -1) {
 	string shuffled = accumulate(sequence_codons.begin(), sequence_codons.end(), ""s);
 
 	// Add characters at the end if necessary
-	if (sequence.size() % 3 != 0) {
-		auto reminder = sequence.size() % 3;
+	auto reminder = sequence.size() % 3;
+	if (reminder != 0) {
 		shuffled += sequence.substr(sequence.size() - reminder);
 	}
 	return shuffled;

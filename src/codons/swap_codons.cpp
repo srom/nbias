@@ -40,7 +40,6 @@ string SwapSynonymousCodons(const string& sequence, const int seed = -1) {
 				swapped.replace(pos, 3, synonymous_codon);
 			}
 		}
-		pos += 3;
 	}
 	return swapped;
 }

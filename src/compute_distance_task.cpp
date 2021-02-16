@@ -38,7 +38,7 @@ bool task_compute_distance(const int task_nb, const vector<string>& assembly_ids
 
 		string cds_dist_path = (
 			sequencesFolder + accession + "/" + 
-			accession + "_tri_nucleotide_dist_with_overlap.csv.gz"
+			accession + "_tri_nucleotide_dist_without_rc_with_overlap.csv.gz"
 		);
 		string outputPath = (
 			sequencesFolder + accession + "/" + 

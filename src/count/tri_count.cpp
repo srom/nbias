@@ -1,27 +1,10 @@
 #include <string>
 #include <vector>
 #include <future>
+#include "../codons/codons.cpp"
 
 using namespace std;
 
-const vector<string> codons = {
-	"AAA", "AAC", "AAG", "AAT",
-	"ACA", "ACC", "ACG", "ACT",
-	"AGA", "AGC", "AGG", "AGT",
-	"ATA", "ATC", "ATG", "ATT",
-	"CAA", "CAC", "CAG", "CAT", 
-	"CCA", "CCC", "CCG", "CCT",
-	"CGA", "CGC", "CGG", "CGT",
-	"CTA", "CTC", "CTG", "CTT",
-	"GAA", "GAC", "GAG", "GAT",
-	"GCA", "GCC", "GCG", "GCT",
-	"GGA", "GGC", "GGG", "GGT",
-	"GTA", "GTC", "GTG", "GTT",
-	"TAA", "TAC", "TAG", "TAT",
-	"TCA", "TCC", "TCG", "TCT",
-	"TGA", "TGC", "TGG", "TGT",
-	"TTA", "TTC", "TTG", "TTT",
-};
 
 int CountKmer(const string& content, const string& kmer, const bool overlap) {
 	int count = 0;
@@ -43,7 +26,7 @@ int CountKmer(const string& content, const string& kmer, const bool overlap) {
 
 vector<int> CountTriNucleotidesAsync(const string& content, const bool overlap) {
 	vector<future<int>> futures;
-	for (auto& codon : codons) {
+	for (auto& codon : CODONS_LIST) {
 		futures.push_back(async(CountKmer, content, codon, overlap));
 	}
 	vector<int> counts;
@@ -55,7 +38,7 @@ vector<int> CountTriNucleotidesAsync(const string& content, const bool overlap) 
 
 vector<int> CountTriNucleotidesSequential(const string& content, const bool overlap) {
 	vector<int> counts;
-	for (auto& codon : codons) {
+	for (auto& codon : CODONS_LIST) {
 		counts.push_back(CountKmer(content, codon, overlap));
 	}
 	return counts;

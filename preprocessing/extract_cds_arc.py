@@ -55,7 +55,8 @@ def main():
         output_path = os.path.join(output_folder, f'{assembly}_cds_from_genomic.fna.gz')
         genome_path = os.path.join(
             base_folder,
-            f'archaea/genomes_assemblies_DNA_fasta/ncbi-genomes-2020-05-15/{assembly}_{version}_genomic.fna',
+            'archaea/genomes_assemblies_DNA_fasta/ncbi-genomes-2020-05-15',
+            f'{assembly}_{version}_genomic.fna',
         )
 
         cds_records = extract_cds_records(assembly, version, gff_path, genome_path)

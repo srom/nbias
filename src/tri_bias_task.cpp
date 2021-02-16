@@ -23,6 +23,7 @@ string task_assembly_count(
 	const int task_nb, 
 	const bool genome_wide, 
 	const bool overlap, 
+	const bool reverse_complement, 
 	const vector<string>& assembly_ids
 ) {
 	string dataFolder = "../data/";
@@ -59,13 +60,13 @@ string task_assembly_count(
 
 		FastaParser parser(instream);
 
-		vector<int> totalCounts(codons.size());
+		vector<int> totalCounts(CODONS_LIST.size());
 		FastaRecord record{};
 		while (parser.Get(record)) {
 			auto counts = CountTriNucleotides(record.content, overlap, use_async);
 
-			vector<int> counts_rc(codons.size());
-			if (genome_wide) {
+			vector<int> counts_rc(CODONS_LIST.size());
+			if (genome_wide && reverse_complement) {
 				ReverseComplement(record.content);
 				counts_rc = CountTriNucleotides(record.content, overlap, use_async);
 			}
@@ -87,7 +88,12 @@ string task_assembly_count(
 	return tempPath;
 }
 
-void run_assembly_count(const bool genome_wide, const bool overlap, const int n_threads) {
+void run_assembly_count(
+	const bool genome_wide, 
+	const bool overlap,
+	const bool reverse_complement, 
+	const int n_threads
+) {
 	string dataFolder = "../data/";
 	string assembliesPath = dataFolder + "assemblies.csv";
 
@@ -108,7 +114,14 @@ void run_assembly_count(const bool genome_wide, const bool overlap, const int n_
 			end = assembly_ids.begin() + endInt;
 		}
 		auto ids = vector<string>(start, end);
-		futurePaths.push_back(async(task_assembly_count, i+1, genome_wide, overlap, ids));
+		futurePaths.push_back(async(
+			task_assembly_count, 
+			i+1, 
+			genome_wide, 
+			overlap, 
+			reverse_complement,
+			ids
+		));
 	}
 
 	vector<string> resultPaths;
@@ -122,6 +135,9 @@ void run_assembly_count(const bool genome_wide, const bool overlap, const int n_
 	} else {
 		outputPath = "../data/tri_nucleotide_dist_genes_only";
 	}
+	if (!reverse_complement) {
+		outputPath += "_without_rc";
+	}
 	if (overlap) {
 		outputPath += "_with_overlap.csv";
 	} else {
@@ -133,7 +149,7 @@ void run_assembly_count(const bool genome_wide, const bool overlap, const int n_
 	ofstream writer(outputPath, ios_base::out);
 
 	string header{"assembly_accession"};
-	for (auto& codon : codons) {
+	for (auto& codon : CODONS_LIST) {
 		header += ";" + codon;
 	}
 	writer << header << endl;
@@ -158,6 +174,7 @@ void run_assembly_count(const bool genome_wide, const bool overlap, const int n_
 bool task_cds_count(
 	const int task_nb, 
 	const bool overlap, 
+	const bool reverse_complement, 
 	const vector<string>& assembly_ids
 ) {
 	string dataFolder = "../data/";
@@ -185,6 +202,9 @@ bool task_cds_count(
 		FastaParser parser(instream);
 
 		string output_path = sequencesFolder + accession + "/" + accession + "_tri_nucleotide_dist";
+		if (!reverse_complement) {
+			output_path += "_without_rc";
+		}
 		if (overlap) {
 			output_path += "_with_overlap.csv.gz";
 		} else {
@@ -200,7 +220,7 @@ bool task_cds_count(
 		auto writer = make_csv_writer(ostream);
 
 		vector<string> headers{"protein_id"};
-		for (auto& codon : codons) {
+		for (auto& codon : CODONS_LIST) {
 			headers.push_back(codon);
 		}
 		writer << headers;
@@ -209,7 +229,7 @@ bool task_cds_count(
 		while (parser.Get(record)) {
 			auto counts = CountTriNucleotides(record.content, overlap, false);
 
-			if (overlap) {
+			if (reverse_complement) {
 				ReverseComplement(record.content);
 				auto counts_rc = CountTriNucleotides(record.content, overlap, false);
 				for (int k = 0; k < counts.size(); ++k) {
@@ -232,7 +252,7 @@ bool task_cds_count(
 	return true;
 }
 
-void run_cds_count(const bool overlap, const int n_threads) {
+void run_cds_count(const bool overlap, const bool reverse_complement, const int n_threads) {
 	string dataFolder = "../data/";
 	string assembliesPath = dataFolder + "assemblies.csv";
 
@@ -253,7 +273,7 @@ void run_cds_count(const bool overlap, const int n_threads) {
 			end = assembly_ids.begin() + endInt;
 		}
 		auto ids = vector<string>(start, end);
-		futures.push_back(async(task_cds_count, i+1, overlap, ids));
+		futures.push_back(async(task_cds_count, i+1, overlap, reverse_complement, ids));
 	}
 	for (auto& f : futures) {
 		if(!f.get()) {

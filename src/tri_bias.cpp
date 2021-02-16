@@ -29,8 +29,13 @@ int main(int ac, char* av[]) {
             (
             	"overlap,o", 
             	po::bool_switch(), 
-            	"Count kmers with overlap"
+            	"Count kmers with overlap "
             	"(i.e. consider all reading frames)"
+            )
+            (
+                "reverse_complement,r", 
+                po::bool_switch(), 
+                "Consider reverse complement as well"
             )
             (
             	"n_threads,t", 
@@ -68,15 +73,22 @@ int main(int ac, char* av[]) {
             cerr << "Overlap: false" << endl;
         }
 
+        const bool reverse_complement = vm["reverse_complement"].as<bool>();
+        if (reverse_complement) {
+            cerr << "Reverse complement: true" << endl;
+        } else {
+            cerr << "Reverse complement: false" << endl;
+        }
+
         const int n_threads = vm["n_threads"].as<int>();
         cerr << "Threads: " << n_threads << endl;
 
         if (level == "genome") {
-        	run_assembly_count(true, overlap, n_threads);
+        	run_assembly_count(true, overlap, reverse_complement, n_threads);
         } else if (level == "genes") {
-        	run_assembly_count(false, overlap, n_threads);
+        	run_assembly_count(false, overlap, reverse_complement, n_threads);
         } else if (level == "cds") {
-        	run_cds_count(overlap, n_threads);
+        	run_cds_count(overlap, reverse_complement, n_threads);
         }
 	}
 	catch (exception& e) {

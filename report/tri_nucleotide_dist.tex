@@ -32,10 +32,10 @@ A dataset of 19,741 strains from 19,228 species was selected, including 18,322 b
 A dataset of protein domains from Pfam~\cite{bateman2004pfam} \& TIGRFAM~\cite{haft2003tigrfams} was retrieved and aligned against all of the 20,000 genomes, once again courtesy of Antoine.
 
 \paragraph{Tri-nucleotide distributions}
-Distribution of tri-nucleotides is computed by counting triplets of nucleotides on a set of DNA sequences and their reverse complements, then dividing each value by the sum of all triplet counts.
+Distributions of tri-nucleotides are computed by counting triplets of nucleotides on a set of DNA sequences before dividing each value by the sum of all triplet counts.
 
 \paragraph{Genome-wide \& per-gene distributions}
-Specifically, genome-wide distributions are computed by considering all chromosome \& plasmid sequences of a given strain as well as their reverse complements. Similarly, per-gene distributions are computed by considering triplets from CDS and their reverse complements, i.e. disregarding reading frames.
+Specifically, genome-wide distributions are computed by considering all chromosome \& plasmid sequences of a given strain as well as their reverse complements, across all three reading frames. Per-gene distributions are similarly computed by considering triplets from CDS on all three reading frames, but on their 5' to 3' strand only.
 
 \paragraph{Comparing distributions}
 Information theory provides mechanisms to measure the similarity between probability distributions; one such method is the \textit{Kullback–Leibler divergence}~\cite{kullback1951information}, defined as follow for two distributions P and Q defined on probability space $X$:

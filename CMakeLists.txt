@@ -76,3 +76,8 @@ add_executable(test_domain ${test_domain_SOURCES})
 target_link_libraries(test_domain ${Boost_LIBRARIES} xtensor)
 target_compile_options(test_domain PRIVATE -march=native)
 add_test(NAME domain COMMAND test_domain)
+
+file(GLOB test_codons_SOURCES "test/codons/*.cpp")
+add_executable(test_codons ${test_codons_SOURCES})
+target_link_libraries(test_codons ${Boost_LIBRARIES})
+add_test(NAME codons COMMAND test_codons)

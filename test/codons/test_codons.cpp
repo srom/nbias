@@ -32,6 +32,10 @@ BOOST_AUTO_TEST_CASE(SwapSynonymousCodonsTest)
     // Test with stop codon
     string swapped6 = SwapSynonymousCodons("CTTTGCTAG", 666);
     BOOST_CHECK_EQUAL(swapped6, "CTGTGCTAA");
+
+    // Test with unknown codon
+    string swapped7 = SwapSynonymousCodons("CTTXTCTAG", 666);
+    BOOST_CHECK_EQUAL(swapped7, "CTGXTCTAA");
 }
 
 BOOST_AUTO_TEST_CASE(ShuffleCodonsTest)

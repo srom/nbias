@@ -4,7 +4,7 @@
 
 using namespace std;
 
-const vector<string> CODONS_LIST = {
+const vector<string> CODONS = {
 	"AAA", "AAC", "AAG", "AAT",
 	"ACA", "ACC", "ACG", "ACT",
 	"AGA", "AGC", "AGG", "AGT",

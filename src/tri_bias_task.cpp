@@ -60,12 +60,12 @@ string task_assembly_count(
 
 		FastaParser parser(instream);
 
-		vector<int> totalCounts(CODONS_LIST.size());
+		vector<int> totalCounts(CODONS.size());
 		FastaRecord record{};
 		while (parser.Get(record)) {
 			auto counts = CountTriNucleotides(record.content, overlap, use_async);
 
-			vector<int> counts_rc(CODONS_LIST.size());
+			vector<int> counts_rc(CODONS.size());
 			if (genome_wide && reverse_complement) {
 				ReverseComplement(record.content);
 				counts_rc = CountTriNucleotides(record.content, overlap, use_async);
@@ -149,7 +149,7 @@ void run_assembly_count(
 	ofstream writer(outputPath, ios_base::out);
 
 	string header{"assembly_accession"};
-	for (auto& codon : CODONS_LIST) {
+	for (auto& codon : CODONS) {
 		header += ";" + codon;
 	}
 	writer << header << endl;
@@ -220,7 +220,7 @@ bool task_cds_count(
 		auto writer = make_csv_writer(ostream);
 
 		vector<string> headers{"protein_id"};
-		for (auto& codon : CODONS_LIST) {
+		for (auto& codon : CODONS) {
 			headers.push_back(codon);
 		}
 		writer << headers;

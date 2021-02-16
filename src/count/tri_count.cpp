@@ -26,7 +26,7 @@ int CountKmer(const string& content, const string& kmer, const bool overlap) {
 
 vector<int> CountTriNucleotidesAsync(const string& content, const bool overlap) {
 	vector<future<int>> futures;
-	for (auto& codon : CODONS_LIST) {
+	for (auto& codon : CODONS) {
 		futures.push_back(async(CountKmer, content, codon, overlap));
 	}
 	vector<int> counts;
@@ -38,7 +38,7 @@ vector<int> CountTriNucleotidesAsync(const string& content, const bool overlap) 
 
 vector<int> CountTriNucleotidesSequential(const string& content, const bool overlap) {
 	vector<int> counts;
-	for (auto& codon : CODONS_LIST) {
+	for (auto& codon : CODONS) {
 		counts.push_back(CountKmer(content, codon, overlap));
 	}
 	return counts;

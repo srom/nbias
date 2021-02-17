@@ -32,6 +32,11 @@ add_executable(domain_probability ${domain_probability_SOURCES})
 target_link_libraries(domain_probability ${Boost_LIBRARIES} xtensor)
 target_compile_options(domain_probability PRIVATE -march=native)
 
+file(GLOB intervention_SOURCES "src/intervention.cpp")
+add_executable(intervention ${intervention_SOURCES})
+target_link_libraries(intervention ${Boost_LIBRARIES} xtensor)
+target_compile_options(intervention PRIVATE -march=native)
+
 # Test Executables
 file(GLOB test_fasta_SOURCES "test/fasta/*.cpp")
 add_executable(test_fasta ${test_fasta_SOURCES})

@@ -8,7 +8,7 @@ Conversely, the same quantities an be computed for domains consistently far from
 #include <string>
 #include <algorithm>
 #include <boost/program_options.hpp>
-#include "domain_probability_task.cpp"
+#include "./task/domain_probability_task.cpp"
 
 using namespace std;
 namespace po = boost::program_options;

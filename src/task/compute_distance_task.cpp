@@ -7,9 +7,9 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include "csv.hpp"
-#include "assembly/assembly.cpp"
-#include "distance/distance.cpp"
-#include "distribution/distribution.cpp"
+#include "../assembly/assembly.cpp"
+#include "../distance/distance.cpp"
+#include "../distribution/distribution.cpp"
 
 using namespace std;
 using namespace std::chrono;

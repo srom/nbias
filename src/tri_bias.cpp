@@ -4,7 +4,7 @@ Compute tri-nucleotide bias for assemblies in data/sequences.
 #include <iostream>
 #include <string>
 #include <boost/program_options.hpp>
-#include "tri_bias_task.cpp"
+#include "./task/tri_bias_task.cpp"
 
 using namespace std;
 namespace po = boost::program_options;

@@ -12,10 +12,10 @@
 #include <xtensor/xarray.hpp>
 #include <xtensor/xmath.hpp>
 #include "csv.hpp"
-#include "assembly/assembly.cpp"
-#include "probability/probability.cpp"
-#include "probability/probability_util.cpp"
-#include "domain/domain.cpp"
+#include "../assembly/assembly.cpp"
+#include "../probability/probability.cpp"
+#include "../probability/probability_util.cpp"
+#include "../domain/domain.cpp"
 
 using namespace std;
 using namespace std::chrono;

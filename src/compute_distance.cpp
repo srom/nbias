@@ -5,7 +5,7 @@ and its genes' tri-nucleotide distributions.
 #include <iostream>
 #include <string>
 #include <boost/program_options.hpp>
-#include "compute_distance_task.cpp"
+#include "./task/compute_distance_task.cpp"
 
 using namespace std;
 namespace po = boost::program_options;

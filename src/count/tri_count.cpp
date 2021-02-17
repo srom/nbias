@@ -5,7 +5,6 @@
 
 using namespace std;
 
-
 int CountKmer(const string& content, const string& kmer, const bool overlap) {
 	int count = 0;
 	string::size_type pos = 0;

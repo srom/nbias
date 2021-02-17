@@ -10,21 +10,34 @@
 
 using namespace std;
 
-xt::xarray<double> compute_probability_from_distance(const vector<double>& distances, const bool left_tail) {
+double compute_probability_from_distance(const double distance, const bool left_tail) {
+	double prob;
+	if (left_tail) {
+		prob = (double) 1.0 - distance;
+	} else {
+		prob = distance;
+	}
+	if (isnan(prob)) {
+		throw runtime_error("compute_probability_from_distance: NaN values encountered");
+	}
+	return prob;
+}
+
+xt::xarray<double> compute_probabilities_from_distance(const vector<double>& distances, const bool left_tail) {
 	xt::xarray<double> probabilities = xt::zeros<double>({distances.size()});
 	for (int i = 0; i < distances.size(); ++i) {
-		double prob;
-		if (left_tail) {
-			prob = (double) 1.0 - distances[i];
-		} else {
-			prob = distances[i];
-		}
-		if (isnan(prob)) {
-			throw runtime_error("compute_probability_from_distance: NaN values encountered");
-		}
-		probabilities[i] = prob;
+		probabilities[i] = compute_probability_from_distance(distances[i], left_tail);
 	}
 	return probabilities;
+}
+
+xt::xarray<double> compute_baseline_probabilities(const xt::xarray<double>& probabilities) {
+	xt::xarray<double> baseline = xt::zeros<double>({probabilities.size()});
+	double mean = xt::mean(probabilities)();
+	for (int j = 0; j < probabilities.size(); ++j) {
+		baseline[j] = mean;
+	}
+	return baseline;
 }
 
 class GeneProbabilies {
@@ -70,13 +83,8 @@ class GeneProbabilies {
 				throw runtime_error("GeneProbabilies: no data");
 			}
 
-			probabilities = compute_probability_from_distance(distances, tail == "left");
-
-			double mean = xt::mean(probabilities)();
-			random_probabilities = xt::zeros<double>({probabilities.size()});
-			for (int j = 0; j < probabilities.size(); ++j) {
-				random_probabilities[j] = mean;
-			}
+			probabilities = compute_probabilities_from_distance(distances, tail == "left");	
+			random_probabilities = compute_baseline_probabilities(probabilities);
 		}
 
 		double operator[](const string& id) {

@@ -39,7 +39,7 @@ class Assemblies {
 				string assembly_accession = row["assembly_accession"].get<string>();
 
 				bool not_a_complete_genome = (
-					assembly_level != "Complete Genome" or
+					assembly_level != "Complete Genome" ||
 					phylum.size() == 0
 				);
 				if (complete_genome_only and not_a_complete_genome) {

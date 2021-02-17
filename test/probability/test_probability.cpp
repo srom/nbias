@@ -177,8 +177,8 @@ BOOST_AUTO_TEST_CASE(TestMarginalizationLog, * utf::tolerance(0.00001))
 BOOST_AUTO_TEST_CASE(TestComputeProbabilityFromDistance, * utf::tolerance(0.00001))
 {
 	vector<double> distances{0.95, 0.92, 0.71};
-	xt::xarray<double> p = compute_probability_from_distance(distances, true);
-	xt::xarray<double> q = compute_probability_from_distance(distances, false);
+	xt::xarray<double> p = compute_probabilities_from_distance(distances, true);
+	xt::xarray<double> q = compute_probabilities_from_distance(distances, false);
 
 	BOOST_TEST(p.size() == 3);
 	BOOST_TEST(q.size() == 3);

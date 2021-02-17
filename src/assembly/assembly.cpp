@@ -31,24 +31,35 @@ class Assemblies {
 	unordered_map<string, Assembly> data;
 
 	public:
-		Assemblies(string path) :assembly_accessions{}, data{} {
+		Assemblies(string path, bool complete_genome_only = false) :assembly_accessions{}, data{} {
 			CSVReader reader(path);
 			for (CSVRow& row: reader) {
+				string phylum = row["phylum"].get<string>();
+				string assembly_level = row["assembly_level"].get<string>();
 				string assembly_accession = row["assembly_accession"].get<string>();
+
+				bool not_a_complete_genome = (
+					assembly_level != "Complete Genome" or
+					phylum.size() == 0
+				);
+				if (complete_genome_only and not_a_complete_genome) {
+					continue;
+				}
+
 				Assembly assembly{
 					assembly_accession,
 					row["taxid"].get<int>(),
 					row["species_taxid"].get<int>(),
 					row["organism_name"].get<string>(),
 					row["domain"].get<string>(),
-					row["phylum"].get<string>(),
+					phylum,
 					row["class"].get<string>(),
 					row["order"].get<string>(),
 					row["family"].get<string>(),
 					row["genus"].get<string>(),
 					row["species"].get<string>(),
 					row["strain"].get<string>(),
-					row["assembly_level"].get<string>(),
+					assembly_level,
 				};
 				assembly_accessions.push_back(assembly_accession);
 				data[assembly_accession] = assembly;

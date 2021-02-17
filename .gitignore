@@ -76,7 +76,7 @@ cma_es.egg-info/
 *~
 .idea
 .iml
-.sublime*
+*.sublime-workspace
 
 # Tensorflow
 checkpoints/

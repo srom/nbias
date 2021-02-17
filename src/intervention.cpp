@@ -4,6 +4,8 @@ Compute trinucleotide distribution analysis on randomly modified CDS sequences.
 Interventions on CDS sequences are of two types: 
 - Random swap of synonymous codons,
 - Random shuffling of codon order.
+
+Only complete genomes are considered.
 */
 #include <iostream>
 #include <string>
@@ -41,6 +43,11 @@ int main(int ac, char* av[]) {
                 "intervention,i", 
                 po::value<string>()->default_value(""), 
                 "Intervention type: one of 'swap' or 'shuffle'"
+            )
+            (
+                "n_samples,n", 
+                po::value<int>()->default_value(100), 
+                "Number of random interventions"
             )
             (
             	"n_threads,t", 
@@ -87,10 +94,18 @@ int main(int ac, char* av[]) {
             return 1;
         }
 
+        int n_samples = vm["n_samples"].as<int>();
+        cerr << "Number of samples: " << n_samples << endl;
+        if (n_samples <= 0) {
+            cerr << "Error: --n_samples must be a positive number" << endl;
+            cerr << desc << endl;
+            return 1;
+        }
+
         const int n_threads = vm["n_threads"].as<int>();
         cerr << "Threads: " << n_threads << endl;
 
-        compute_intervention(query, tail, intervention, n_threads);
+        compute_intervention(query, tail, intervention, n_samples, n_threads);
 	}
 	catch (exception& e) {
 		cerr << "Exception raised: " << e.what() << endl;

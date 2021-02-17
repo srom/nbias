@@ -27,7 +27,7 @@ using namespace std;
 using namespace std::chrono;
 using namespace csv;
 
-unordered_map<string, vector<double>> MakeIntervention(
+unordered_map<string, vector<double>> MakeInterventions(
 	FastaParser parser, 
 	const xt::xarray<double>& genome_wide_dist,
 	const string& intervention, 
@@ -66,7 +66,7 @@ unordered_map<string, vector<double>> MakeIntervention(
 			// Compute distance
 			double distance = jensen_shannon_distance(genome_wide_dist, cds_distribution);
 			if (isinf(distance) || isnan(distance)) {
-				cerr << "MakeIntervention: Nan or Inf encountered for protein id: " << protein_id << endl;
+				cerr << "MakeInterventions: Nan or Inf encountered for protein id: " << protein_id << endl;
 				continue;
 			} else {
 				distances.push_back(distance);
@@ -107,12 +107,10 @@ bool task_intervention_per_assembly(
 	// Compute interventions on every assemblies
 	int i = 0;
 	for (auto& accession : assembly_ids) {
-		if (i == 0 || (i+1) % 100 == 0) {
-			auto elapsed = duration_cast<seconds>(system_clock::now() - start).count();
-			cerr << "Thread " << task_nb << ": ";
-			cerr << "Processing assembly " << i + 1 << " / " << n_assemblies;
-			cerr << " (elapsed: " << elapsed << " seconds)" << endl;
-		}
+		auto elapsed = duration_cast<seconds>(system_clock::now() - start).count();
+		cerr << "Thread " << task_nb << ": ";
+		cerr << "Processing assembly " << i + 1 << " / " << n_assemblies;
+		cerr << " (elapsed: " << elapsed << " seconds)" << endl;
 		++i;
 
 		// Get genome-wide distribution
@@ -146,12 +144,26 @@ bool task_intervention_per_assembly(
 		// Make interventions: randomly modify sequences a bunch of times and return results as a
 		// map of protein ids to the list of distances from the modified sequence distributions 
 		// the genome-wide distribution. 
-		unordered_map<string, vector<double>> protein_id_to_distances = MakeIntervention(
+		unordered_map<string, vector<double>> protein_id_to_distances = MakeInterventions(
 			parser,
 			genome_wide_dist,
 			intervention,
 			n_samples
 		);
+
+		// Compute mean probability per sample
+		vector<double> means(n_samples);
+		for (int s = 0; s < n_samples; ++s) {
+			xt::xarray<double> probs = xt::zeros<double>({protein_id_to_distances.size()});
+			int ix = 0;
+			for (auto& it : protein_id_to_distances) {
+				double distance = it.second[s];
+				probs[ix] = compute_probability_from_distance(distance, tail == "left");
+				++ix;
+			}
+			double mean = xt::mean(probs)();
+			means[s] = mean;
+		}
 
 		// Compute domain probability
 		vector<DomainProbability> records;
@@ -171,16 +183,8 @@ bool task_intervention_per_assembly(
 			xt::xarray<double> log_probs = xt::zeros<double>({n_samples});
 			xt::xarray<double> log_probs_baseline = xt::zeros<double>({n_samples});
 			for (int s = 0; s < n_samples; ++s) {
-				// Compute mean probability
-				xt::xarray<double> probs = xt::zeros<double>({protein_id_to_distances.size()});
-				int ix = 0;
-				for (auto& it : protein_id_to_distances) {
-					double distance = it.second[s];
-					probs[ix] = compute_probability_from_distance(distance, tail == "left");
-					++ix;
-				}
-				double mean = xt::mean(probs)();
-
+				double mean = means[s];
+				
 				xt::xarray<double> probabilities = xt::zeros<double>({protein_ids.size()});
 				xt::xarray<double> probabilities_baseline = xt::zeros<double>({protein_ids.size()});
 				for (int k = 0; k < protein_ids.size(); ++k) {

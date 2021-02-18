@@ -13,20 +13,15 @@ using namespace std;
  *
  * @param sequence: coding gene sequence.
  *
- * @param seed: Random seed. Randomly set if negative or not set.
+ * @param rng: A Mersenne Twister pseudo-random generator of 32-bit numbers.
  *
  * @return sequence with synonymous codons randomly swapped.
  */
-string SwapSynonymousCodons(const string& sequence, const int seed = -1) {
+string SwapSynonymousCodons(const string& sequence, mt19937 rng) {
 	if (sequence.size() < 3) {
 		return sequence;
 	}
-	// Set random seed
-	random_device rd;
-	mt19937 gen(rd());
-	if (seed >= 0) {
-		gen.seed(seed);
-	}
+	unordered_map<int, uniform_int_distribution<>> uniform_dists;
 	string swapped = sequence;
 	for (int pos = 0; pos + 3 <= sequence.size(); pos += 3) {
 		string codon = swapped.substr(pos, pos + 3);
@@ -35,9 +30,13 @@ string SwapSynonymousCodons(const string& sequence, const int seed = -1) {
 			const string& amino_acid = CODON_TO_AMINO_ACID.at(codon);
 			const vector<string>& synonymous_codons = AMINO_ACID_TO_CODONS.at(amino_acid);
 
-			if (synonymous_codons.size() > 1) {
-				uniform_int_distribution<> distr(0, synonymous_codons.size() - 1);
-				const string& synonymous_codon = synonymous_codons[distr(gen)];
+			auto size = synonymous_codons.size();
+			if (size > 1) {
+				if (uniform_dists.find(size) == uniform_dists.end()) {
+					uniform_dists[size] = uniform_int_distribution<>(0, size - 1);
+				}
+				auto& distr = uniform_dists[size];
+				const string& synonymous_codon = synonymous_codons[distr(rng)];
 				swapped.replace(pos, 3, synonymous_codon);
 			}
 		}
@@ -50,21 +49,14 @@ string SwapSynonymousCodons(const string& sequence, const int seed = -1) {
  *
  * @param sequence: coding gene sequence.
  *
- * @param seed: Random seed. Randomly set if negative or not set.
+ * @param rng: A Mersenne Twister pseudo-random generator of 32-bit numbers.
  *
  * @return sequence with codons randomly shuffled.
  */
-string ShuffleCodons(const string& sequence, const int seed = -1) {
+string ShuffleCodons(const string& sequence, mt19937 rng) {
 	if (sequence.size() < 3) {
 		return sequence;
 	}
-	// Set random seed
-	random_device rd;
-	mt19937 gen(rd());
-	if (seed >= 0) {
-		gen.seed(seed);
-	}
-
 	// Extract codons
 	vector<string> sequence_codons;
 	for (int pos = 0; pos + 3 <= sequence.size(); pos += 3) {
@@ -72,10 +64,13 @@ string ShuffleCodons(const string& sequence, const int seed = -1) {
 	}
 
 	// Shuffle codons
-	shuffle(sequence_codons.begin(), sequence_codons.end(), gen);
+	shuffle(sequence_codons.begin(), sequence_codons.end(), rng);
 
 	// Reconstruct string
-	string shuffled = accumulate(sequence_codons.begin(), sequence_codons.end(), ""s);
+	string shuffled;
+	for (const auto& codon : sequence_codons) {
+		shuffled += codon;
+	}
 
 	// Add characters at the end if necessary
 	auto reminder = sequence.size() % 3;

@@ -1,6 +1,6 @@
 /*
 Compute probability & bayesian evidence that a Pfam or TIGR protein domain is near 
-their respective average tri-nucleotide distribution.
+their respective average tri-nucleotide or amino acid distribution.
 
 Conversely, the same quantities an be computed for domains consistently far from the mean.
 */
@@ -18,12 +18,17 @@ int main(int ac, char* av[]) {
 		po::options_description desc(
 			"Compute probability & bayesian evidence that a Pfam or TIGR "
             "protein domain is near (or far) from their respective "
-            "average tri-nucleotide distribution"
+            "average tri-nucleotide or amino acid distribution"
 		);
 		desc.add_options()
             (
             	"help,h", 
             	"Print help message"
+            )
+            (
+                "kind,k", 
+                po::value<string>()->default_value(""), 
+                "One of \"tri-nucleotide\" or \"amino-acid\""
             )
             (
                 "query,q", 
@@ -52,6 +57,19 @@ int main(int ac, char* av[]) {
             return 0;
         }
 
+        string kind = vm["kind"].as<string>();
+        if (kind == "tri-nucleotide" || kind == "amino-acid") {
+            cerr << "Kind: " << kind << endl;
+        } else if (kind.empty()) {
+            cerr << "Error: parameter \"kind\" not set.";
+            cerr << " See --help for usage." << endl;
+            return 1;
+        } else {
+            cerr << "Error: unknown value for parameter \"kind\": \"" << kind;
+            cerr << "\". See --help for usage." << endl;
+            return 1;
+        }
+
         auto query = vm["query"].as<string>();
         transform(query.begin(), query.end(), query.begin(), ::tolower);
 
@@ -74,7 +92,7 @@ int main(int ac, char* av[]) {
         const int n_threads = vm["n_threads"].as<int>();
         cerr << "Threads: " << n_threads << endl;
 
-        compute_domain_probabilities(query, tail, n_threads);
+        compute_domain_probabilities(kind, query, tail, n_threads);
 	}
 	catch (exception& e) {
 		cerr << "Exception raised: " << e.what() << endl;

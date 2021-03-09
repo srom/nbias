@@ -15,7 +15,11 @@ using namespace std;
 using namespace std::chrono;
 using namespace csv;
 
-bool task_compute_distance(const int task_nb, const vector<string>& assembly_ids) {
+bool task_compute_distance(
+	const int task_nb, 
+	const string kind,
+	const vector<string>& assembly_ids
+) {
 	auto start = system_clock::now();
 
 	cerr << "Thread " << task_nb << " started." << endl;
@@ -23,7 +27,13 @@ bool task_compute_distance(const int task_nb, const vector<string>& assembly_ids
 	string dataFolder = "../data/";
 	string sequencesFolder = dataFolder + "sequences/";
 
-	string assembly_dist_path = dataFolder + "tri_nucleotide_dist_genome_wide_with_overlap.csv";
+	string assembly_dist_path;
+	if (kind == "tri-nucleotide") {
+		assembly_dist_path = dataFolder + "tri_nucleotide_dist_genome_wide_with_overlap.csv";
+	} else {
+		assembly_dist_path = dataFolder + "amino_acid_dist_genome_wide.csv";
+	}
+
 	ifstream assembly_dist_f(assembly_dist_path);
 	Distributions assembly_distributions(assembly_dist_f);
 
@@ -36,15 +46,28 @@ bool task_compute_distance(const int task_nb, const vector<string>& assembly_ids
 		}
 		++i;
 
-		string cds_dist_path = (
-			sequencesFolder + accession + "/" + 
-			accession + "_tri_nucleotide_dist_without_rc_with_overlap.csv.gz"
-		);
-		string outputPath = (
-			sequencesFolder + accession + "/" + 
-			accession + "_tri_nucleotide_distance_to_mean.csv"
-		);
-
+		string cds_dist_path;
+		string outputPath;
+		if (kind == "tri-nucleotide") {
+			cds_dist_path = (
+				sequencesFolder + accession + "/" + 
+				accession + "_tri_nucleotide_dist_without_rc_with_overlap.csv.gz"
+			);
+			outputPath = (
+				sequencesFolder + accession + "/" + 
+				accession + "_tri_nucleotide_distance_to_mean.csv"
+			);
+		} else {
+			cds_dist_path = (
+				sequencesFolder + accession + "/" + 
+				accession + "_amino_acid_dist.csv.gz"
+			);
+			outputPath = (
+				sequencesFolder + accession + "/" + 
+				accession + "_amino_acid_distance_to_mean.csv"
+			);
+		}
+		
 		ifstream cds_dist_f(cds_dist_path, ios_base::in | ios_base::binary);
 		boost::iostreams::filtering_streambuf<boost::iostreams::input> inbuf;
 		inbuf.push(boost::iostreams::gzip_decompressor());
@@ -90,7 +113,7 @@ bool task_compute_distance(const int task_nb, const vector<string>& assembly_ids
 	return true;
 }
 
-void compute_distance(const int n_threads) {
+void compute_distance(const string kind, const int n_threads) {
 	string dataFolder = "../data/";
 	string assembliesPath = dataFolder + "assemblies.csv";
 
@@ -111,7 +134,7 @@ void compute_distance(const int n_threads) {
 			end = assembly_ids.begin() + endInt;
 		}
 		auto ids = vector<string>(start, end);
-		futures.push_back(async(task_compute_distance, i+1, ids));
+		futures.push_back(async(task_compute_distance, i+1, kind, ids));
 	}
 	for (auto& f : futures) {
 		if(!f.get()) {

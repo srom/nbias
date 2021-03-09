@@ -50,3 +50,31 @@ vector<int> CountTriNucleotides(const string& content, const bool overlap, const
 		return CountTriNucleotidesSequential(content, overlap);
 	}
 }
+
+vector<int> CountAminoAcidsAsync(const string& content) {
+	vector<future<int>> futures;
+	for (auto& aa : AMINO_ACIDS_ONE_LETTER) {
+		futures.push_back(async(CountKmer, content, aa, true));
+	}
+	vector<int> counts;
+	for (auto& f : futures) {
+		counts.push_back(f.get());
+	}
+	return counts;
+}
+
+vector<int> CountAminoAcidsSequential(const string& content) {
+	vector<int> counts;
+	for (auto& aa : AMINO_ACIDS_ONE_LETTER) {
+		counts.push_back(CountKmer(content, aa, true));
+	}
+	return counts;
+}
+
+vector<int> CountAminoAcids(const string& content, const bool use_async) {
+	if (use_async) {
+		return CountAminoAcidsAsync(content);
+	} else {
+		return CountAminoAcidsSequential(content);
+	}
+}

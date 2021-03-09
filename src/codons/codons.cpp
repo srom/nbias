@@ -24,6 +24,20 @@ const vector<string> CODONS = {
 	"TTA", "TTC", "TTG", "TTT",
 };
 
+const vector<string> AMINO_ACIDS_THREE_LETTERS = {
+    "Ala", "Arg", "Asn", "Asp", "Cys",
+    "Gln", "Glu", "Gly", "His", "Ile",
+    "Leu", "Lys", "Met", "Phe", "Pro",
+    "Ser", "Thr", "Trp", "Tyr", "Val",
+};
+
+const vector<string> AMINO_ACIDS_ONE_LETTER = {
+    "A", "R", "N", "D", "C",
+    "Q", "E", "G", "H", "I",
+    "L", "K", "M", "F", "P",
+    "S", "T", "W", "Y", "V",
+};
+
 const unordered_map<string, string> CODON_TO_AMINO_ACID = {
     {"TTT", "Phe"}, {"TTC", "Phe"}, {"TTA", "Leu"}, {"TTG", "Leu"},
     {"TCT", "Ser"}, {"TCC", "Ser"}, {"TCA", "Ser"}, {"TCG", "Ser"},

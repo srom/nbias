@@ -1,10 +1,11 @@
 /*
-Compute tri-nucleotide bias for assemblies in data/sequences. 
+Compute tri-nucleotide or amino acid distributions 
+of assemblies from the data/sequences folder.
 */
 #include <iostream>
 #include <string>
 #include <boost/program_options.hpp>
-#include "./task/tri_bias_task.cpp"
+#include "./task/compute_distribution_task.cpp"
 
 using namespace std;
 namespace po = boost::program_options;
@@ -12,7 +13,8 @@ namespace po = boost::program_options;
 int main(int ac, char* av[]) {
 	try {
 		po::options_description desc(
-			"Compute tri-nucleotide distribution of sequences in data/sequences"
+			"Compute tri-nucleotide or amino acid distribution "
+            "of sequences in folder data/sequences"
 		);
 		desc.add_options()
             (
@@ -20,11 +22,15 @@ int main(int ac, char* av[]) {
             	"Print help message"
             )
             (
+                "kind,k", 
+                po::value<string>()->default_value(""), 
+                "One of \"tri-nucleotide\" or \"amino-acid\""
+            )
+            (
             	"level,l", 
             	po::value<string>()->default_value(""), 
-            	"One of \"genome\" (compute genome-wide), "
-            	"\"genes\" (compute on genes only), "
-            	"\"cds\" (compute distribution for each individual CDS)."
+            	"One of \"genome\" (compute distribution genome-wide), "
+            	"\"cds\" (compute distribution for each individual coding sequences)"
             )
             (
             	"overlap,o", 
@@ -35,12 +41,12 @@ int main(int ac, char* av[]) {
             (
                 "reverse_complement,r", 
                 po::bool_switch(), 
-                "Consider reverse complement as well"
+                "Consider reverse complement as well (only relevant for kind = tri-nucleotide)"
             )
             (
             	"n_threads,t", 
             	po::value<int>()->default_value(4),
-            	"Number of threads to use."
+            	"Number of threads to use"
             )
         ;
 
@@ -53,8 +59,21 @@ int main(int ac, char* av[]) {
             return 0;
         }
 
+        auto kind = vm["kind"].as<string>();
+        if (kind == "tri-nucleotide" || kind == "amino-acid") {
+            cerr << "Kind: " << kind << endl;
+        } else if (kind.empty()) {
+            cerr << "Error: parameter \"kind\" not set.";
+            cerr << " See --help for usage." << endl;
+            return 1;
+        } else {
+            cerr << "Error: unknown value for parameter \"kind\": \"" << kind;
+            cerr << "\". See --help for usage." << endl;
+            return 1;
+        }
+
         auto level = vm["level"].as<string>();
-        if (level == "genome" || level == "genes" || level == "cds") {
+        if (level == "genome" || level == "cds") {
         	cerr << "Level: " << level << endl;
         } else if (level.empty()) {
         	cerr << "Error: parameter \"level\" not set.";
@@ -80,15 +99,18 @@ int main(int ac, char* av[]) {
             cerr << "Reverse complement: false" << endl;
         }
 
+        if (reverse_complement && kind == "amino-acid") {
+            cerr << "Error: Cannot use reverse_complement option with kind = amino-acid";
+            return 1;
+        }
+
         const int n_threads = vm["n_threads"].as<int>();
         cerr << "Threads: " << n_threads << endl;
 
         if (level == "genome") {
-        	run_assembly_count(true, overlap, reverse_complement, n_threads);
-        } else if (level == "genes") {
-        	run_assembly_count(false, overlap, reverse_complement, n_threads);
+        	run_genome_wide_count(kind, overlap, reverse_complement, n_threads);
         } else if (level == "cds") {
-        	run_cds_count(overlap, reverse_complement, n_threads);
+        	run_cds_count(kind, overlap, reverse_complement, n_threads);
         }
 	}
 	catch (exception& e) {

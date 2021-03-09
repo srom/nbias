@@ -19,9 +19,9 @@ using namespace std;
 using namespace std::chrono;
 using namespace csv;
 
-string task_assembly_count(
+string task_genome_wide_count(
 	const int task_nb, 
-	const bool genome_wide, 
+	const string kind,
 	const bool overlap, 
 	const bool reverse_complement, 
 	const vector<string>& assembly_ids
@@ -39,19 +39,21 @@ string task_assembly_count(
 
 	int i = 0;
 	auto start = system_clock::now();
-	bool use_async = genome_wide;
+	bool use_async = true;
 	for (auto& accession : assembly_ids) {
 		if (i == 0 || (i+1) % 100 == 0) {
 			auto tp = system_clock::now();
 			cerr << "Thread " << task_nb << ": Processing assembly " << i + 1 << " / " << assembly_ids.size();
 			cerr << " (elapsed: " << duration_cast<seconds>(tp - start).count() << " seconds)" << endl;
 		}
+
 		string genome_path;
-		if (genome_wide) {
+		if (kind == "tri-nucleotide") {
 			genome_path = sequencesFolder + accession + "/" + accession + "_genomic.fna.gz";
 		} else {
-			genome_path = sequencesFolder + accession + "/" + accession + "_cds_from_genomic.fna.gz";
+			genome_path = sequencesFolder + accession + "/" + accession + "_protein.faa.gz";
 		}
+
 		ifstream input_file(genome_path, ios_base::in | ios_base::binary);
 		boost::iostreams::filtering_streambuf<boost::iostreams::input> inbuf;
 		inbuf.push(boost::iostreams::gzip_decompressor());
@@ -60,13 +62,27 @@ string task_assembly_count(
 
 		FastaParser parser(instream);
 
-		vector<int> totalCounts(CODONS.size());
+		int size = 0;
+		if (kind == "tri-nucleotide") {
+			size = CODONS.size();
+		} else {
+			size = AMINO_ACIDS_THREE_LETTERS.size();
+		}
+
+		vector<int> totalCounts(size);
 		FastaRecord record{};
 		while (parser.Get(record)) {
-			auto counts = CountTriNucleotides(record.content, overlap, use_async);
+			vector<int> counts(size);
+			if (kind == "tri-nucleotide") {
+				counts = CountTriNucleotides(record.content, overlap, use_async);
+			} else {
+				string content = record.content;
+				transform(content.begin(), content.end(), content.begin(), ::toupper);
+				counts = CountAminoAcids(content, false);
+			}
 
-			vector<int> counts_rc(CODONS.size());
-			if (genome_wide && reverse_complement) {
+			vector<int> counts_rc(size);
+			if (reverse_complement) {
 				ReverseComplement(record.content);
 				counts_rc = CountTriNucleotides(record.content, overlap, use_async);
 			}
@@ -88,8 +104,8 @@ string task_assembly_count(
 	return tempPath;
 }
 
-void run_assembly_count(
-	const bool genome_wide, 
+void run_genome_wide_count(
+	const string kind,
 	const bool overlap,
 	const bool reverse_complement, 
 	const int n_threads
@@ -115,9 +131,9 @@ void run_assembly_count(
 		}
 		auto ids = vector<string>(start, end);
 		futurePaths.push_back(async(
-			task_assembly_count, 
-			i+1, 
-			genome_wide, 
+			task_genome_wide_count, 
+			i+1,  
+			kind,
 			overlap, 
 			reverse_complement,
 			ids
@@ -130,27 +146,38 @@ void run_assembly_count(
 	}
 
 	string outputPath;
-	if (genome_wide) {
+
+	if (kind == "tri-nucleotide") {
 		outputPath = "../data/tri_nucleotide_dist_genome_wide";
 	} else {
-		outputPath = "../data/tri_nucleotide_dist_genes_only";
+		outputPath = "../data/amino_acid_dist_genome_wide";
 	}
-	if (!reverse_complement) {
-		outputPath += "_without_rc";
+	
+	if (kind == "tri-nucleotide") {
+		if (!reverse_complement) {
+			outputPath += "_without_rc";
+		}
+		if (overlap) {
+			outputPath += "_with_overlap";
+		} else {
+			outputPath += "_without_overlap";
+		}
 	}
-	if (overlap) {
-		outputPath += "_with_overlap.csv";
-	} else {
-		outputPath += "_without_overlap.csv";
-	}
+	outputPath += ".csv";
 
 	cerr << "Writing output file to " << outputPath << endl;
 
 	ofstream writer(outputPath, ios_base::out);
 
 	string header{"assembly_accession"};
-	for (auto& codon : CODONS) {
-		header += ";" + codon;
+	if (kind == "tri-nucleotide") {
+		for (auto& codon : CODONS) {
+			header += "," + codon;
+		}
+	} else {
+		for (auto& aa_three_leters : AMINO_ACIDS_THREE_LETTERS) {
+			header += "," + aa_three_leters;
+		}
 	}
 	writer << header << endl;
 
@@ -173,6 +200,7 @@ void run_assembly_count(
 
 bool task_cds_count(
 	const int task_nb, 
+	const string kind,
 	const bool overlap, 
 	const bool reverse_complement, 
 	const vector<string>& assembly_ids
@@ -191,7 +219,18 @@ bool task_cds_count(
 			cerr << " (elapsed: " << duration_cast<seconds>(tp - start).count() << " seconds)" << endl;
 		}
 
-		string cds_path = sequencesFolder + accession + "/" + accession + "_cds_from_genomic.fna.gz";
+		string cds_path;
+		if (kind == "tri-nucleotide") {
+			cds_path = (
+				sequencesFolder + accession + "/" + 
+				accession + "_cds_from_genomic.fna.gz"
+			);
+		} else {
+			cds_path = (
+				sequencesFolder + accession + "/" + 
+				accession + "_protein.faa.gz"
+			);
+		}
 
 		ifstream input_file(cds_path, ios_base::in | ios_base::binary);
 		boost::iostreams::filtering_streambuf<boost::iostreams::input> inbuf;
@@ -201,15 +240,27 @@ bool task_cds_count(
 
 		FastaParser parser(instream);
 
-		string output_path = sequencesFolder + accession + "/" + accession + "_tri_nucleotide_dist";
-		if (!reverse_complement) {
-			output_path += "_without_rc";
-		}
-		if (overlap) {
-			output_path += "_with_overlap.csv.gz";
+		string output_path;
+		if (kind == "tri-nucleotide") {
+			output_path = (
+				sequencesFolder + accession + "/" + 
+				accession + "_tri_nucleotide_dist"
+			);
+			if (!reverse_complement) {
+				output_path += "_without_rc";
+			}
+			if (overlap) {
+				output_path += "_with_overlap";
+			} else {
+				output_path += "_without_overlap";
+			}
 		} else {
-			output_path += "_without_overlap.csv.gz";
+			output_path = (
+				sequencesFolder + accession + "/" + 
+				accession + "_amino_acid_dist"
+			);
 		}
+		output_path += ".csv.gz";
 
 		ofstream of(output_path);
 		boost::iostreams::filtering_streambuf<boost::iostreams::output> obuf;
@@ -220,14 +271,27 @@ bool task_cds_count(
 		auto writer = make_csv_writer(ostream);
 
 		vector<string> headers{"protein_id"};
-		for (auto& codon : CODONS) {
-			headers.push_back(codon);
+		if (kind == "tri-nucleotide") {
+			for (auto& codon : CODONS) {
+				headers.push_back(codon);
+			}
+		} else {
+			for (auto& aa : AMINO_ACIDS_THREE_LETTERS) {
+				headers.push_back(aa);
+			}
 		}
 		writer << headers;
 
 		FastaRecord record{};
 		while (parser.Get(record)) {
-			auto counts = CountTriNucleotides(record.content, overlap, false);
+			vector<int> counts;
+			if (kind == "tri-nucleotide") {
+				counts = CountTriNucleotides(record.content, overlap, false);
+			} else {
+				string content = record.content;
+				transform(content.begin(), content.end(), content.begin(), ::toupper);
+				counts = CountAminoAcids(content, false);
+			}
 
 			if (reverse_complement) {
 				ReverseComplement(record.content);
@@ -252,7 +316,12 @@ bool task_cds_count(
 	return true;
 }
 
-void run_cds_count(const bool overlap, const bool reverse_complement, const int n_threads) {
+void run_cds_count(
+	const string kind,
+	const bool overlap, 
+	const bool reverse_complement, 
+	const int n_threads
+) {
 	string dataFolder = "../data/";
 	string assembliesPath = dataFolder + "assemblies.csv";
 
@@ -273,7 +342,7 @@ void run_cds_count(const bool overlap, const bool reverse_complement, const int 
 			end = assembly_ids.begin() + endInt;
 		}
 		auto ids = vector<string>(start, end);
-		futures.push_back(async(task_cds_count, i+1, overlap, reverse_complement, ids));
+		futures.push_back(async(task_cds_count, i+1, kind, overlap, reverse_complement, ids));
 	}
 	for (auto& f : futures) {
 		if(!f.get()) {

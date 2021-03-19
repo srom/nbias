@@ -1,0 +1,12 @@
+{
+	"kind": "amino-acid",
+	"query": "pfam",
+	"tail": "left",
+	"n_threads": 5,
+	"complete_genome_only": true,
+	"distance_to_mean_suffix": "_amino_acid_distance_to_mean.csv",
+	"assembly_output_folder": "confounders/length/assembly",
+	"phylum_output_folder": "confounders/length/phylum",
+	"superkingdom_output_folder": "confounders/length/superkingdom",
+	"overall_output_folder": "confounders/length"
+}

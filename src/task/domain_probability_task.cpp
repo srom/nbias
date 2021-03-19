@@ -16,6 +16,7 @@
 #include "../probability/probability.cpp"
 #include "../probability/probability_util.cpp"
 #include "../domain/domain.cpp"
+#include "./context.cpp"
 
 using namespace std;
 using namespace std::chrono;
@@ -23,14 +24,16 @@ using namespace csv;
 
 bool task_compute_domain_probabilities_per_assembly(
 	const int task_nb,
-	const string kind,
-	const string& query, 
-	const string& tail,
+	const DomainProbabilityContext ctx,
 	const vector<string>& assembly_ids
 ) {
 	auto start = system_clock::now();
 
 	cerr << "Thread " << task_nb << " started." << endl;
+
+	const string kind = ctx.kind;
+	const string query = ctx.query;
+	const string tail = ctx.tail;
 
 	string dataFolder = "../data/";
 	string sequencesFolder = dataFolder + "sequences/";
@@ -50,18 +53,10 @@ bool task_compute_domain_probabilities_per_assembly(
 		}
 		++i;
 
-		string gene_probs_path;
-		if (kind == "tri-nucleotide") {
-			gene_probs_path = (
-				sequencesFolder + accession + "/" + 
-				accession + "_tri_nucleotide_distance_to_mean.csv"
-			);
-		} else {
-			gene_probs_path = (
-				sequencesFolder + accession + "/" + 
-				accession + "_amino_acid_distance_to_mean.csv"
-			);
-		}
+		string gene_probs_path = (
+			sequencesFolder + accession + "/" + 
+			accession + ctx.distance_to_mean_suffix
+		);
 
 		try {
 			ifstream gene_probs_file(gene_probs_path);
@@ -78,15 +73,22 @@ bool task_compute_domain_probabilities_per_assembly(
 			istream instream(&inbuf);
 			ProteinDomains domains(instream);
 
+			string outputFolder;
+			if (ctx.assembly_output_folder.empty()) {
+				outputFolder = sequencesFolder + accession;
+			} else {
+				outputFolder = ctx.assembly_output_folder;
+			}
+
 			string assembly_domain_prob_out_path;
 			if (kind == "tri-nucleotide") {
 				assembly_domain_prob_out_path = (
-					sequencesFolder + accession + "/" + 
+					outputFolder + "/" + 
 					accession + "_" + query + "_probability_" + tail + ".csv"
 				);
 			} else {
 				assembly_domain_prob_out_path = (
-					sequencesFolder + accession + "/" + 
+					outputFolder + "/" + 
 					accession + "_" + query + "_aa_probability_" + tail + ".csv"
 				);
 			}
@@ -143,13 +145,15 @@ bool task_compute_domain_probabilities_per_assembly(
 
 bool task_compute_domain_probabilities_per_phylum(
 	const int task_nb,
-	const string kind,
-	const string& query, 
-	const string& tail,
+	const DomainProbabilityContext ctx,
 	const vector<string>& phyla,
 	const unordered_map<string, vector<string>>& assemblies_per_phylum
 ) {
 	cerr << "Thread " << task_nb << " started." << endl;
+
+	const string kind = ctx.kind;
+	const string query = ctx.query;
+	const string tail = ctx.tail;
 
 	string dataFolder = "../data/";
 	string sequencesFolder = dataFolder + "sequences/";
@@ -173,15 +177,22 @@ bool task_compute_domain_probabilities_per_phylum(
 		set<ProteinDomain> protein_domains;
 		unordered_map<ProteinDomain, vector<DomainProbability>> protein_domain_probs;
 		for (auto& accession : assembly_ids) {
+			string assemblyFolder;
+			if (ctx.assembly_output_folder.empty()) {
+				assemblyFolder = sequencesFolder + accession;
+			} else {
+				assemblyFolder = ctx.assembly_output_folder;
+			}
+
 			string path;
 			if (kind == "tri-nucleotide") {
 				path = (
-					sequencesFolder + accession + "/" + 
+					assemblyFolder + "/" + 
 					accession + "_" + query + "_probability_" + tail + ".csv"
 				);
 			} else {
 				path = (
-					sequencesFolder + accession + "/" + 
+					assemblyFolder + "/" + 
 					accession + "_" + query + "_aa_probability_" + tail + ".csv"
 				);
 			}
@@ -206,7 +217,9 @@ bool task_compute_domain_probabilities_per_phylum(
 		});
 
 		string phylumDir = phylumFolder + phylum_lower + "/";
-
+		if (!ctx.phylum_output_folder.empty()) {
+			phylumDir = ctx.phylum_output_folder + "/";
+		}
 		filesystem::create_directory(phylumDir);
 
 		string phylum_domain_prob_out_path;
@@ -266,18 +279,18 @@ bool task_compute_domain_probabilities_per_phylum(
 	return true;
 }
 
-void compute_domain_probabilities(
-	const string kind,
-	const string query, 
-	const string tail, 
-	const int n_threads
-) {
+void compute_domain_probabilities(const DomainProbabilityContext ctx) {
 	auto start = system_clock::now();
+
+	const string kind = ctx.kind;
+	const string query = ctx.query;
+	const string tail = ctx.tail;
+	const int n_threads = ctx.n_threads;
 
 	string dataFolder = "../data/";
 	string assembliesPath = dataFolder + "assemblies.csv";
 
-	Assemblies assemblies(assembliesPath);
+	Assemblies assemblies(assembliesPath, ctx.complete_genome_only);
 	auto assembly_ids = assemblies.GetIds();
 	auto n_per_thread = ceil((double) assembly_ids.size() / (double) n_threads);
 
@@ -300,9 +313,7 @@ void compute_domain_probabilities(
 		futures.push_back(async(
 			task_compute_domain_probabilities_per_assembly, 
 			i+1, 
-			kind,
-			query, 
-			tail, 
+			ctx,
 			ids
 		));
 	}
@@ -367,9 +378,7 @@ void compute_domain_probabilities(
 		futuresP.push_back(async(
 			task_compute_domain_probabilities_per_phylum, 
 			i+1, 
-			kind,
-			query, 
-			tail, 
+			ctx,
 			vector<string>(start, end),
 			assemblies_per_phylum
 		));
@@ -430,6 +439,9 @@ void compute_domain_probabilities(
 		string superkingdom_inner_folder = (
 			superkingdom_folder + "/" + superkingdom_lower + "/"
 		);
+		if (!ctx.superkingdom_output_folder.empty()) {
+			superkingdom_inner_folder = ctx.superkingdom_output_folder + "/";
+		}
 		filesystem::create_directory(superkingdom_inner_folder);
 
 		auto& superkingdom_phyla = phyla_per_superkingdom[superkingdom];
@@ -454,6 +466,9 @@ void compute_domain_probabilities(
 				}
 			);
 			string phylumDir = dataFolder + "phylum/" + phylum_lower + "/";
+			if (!ctx.phylum_output_folder.empty()) {
+				phylumDir = ctx.phylum_output_folder + "/";
+			}
 
 			string phylum_domain_prob_path;
 			if (kind == "tri-nucleotide") {
@@ -561,6 +576,9 @@ void compute_domain_probabilities(
 		    return ch == ' ' ? '_' : ch;
 		});
 		string phylumDir = dataFolder + "phylum/" + phylum_lower + "/";
+		if (!ctx.phylum_output_folder.empty()) {
+			phylumDir = ctx.phylum_output_folder + "/";
+		}
 
 		string phylum_domain_prob_path;
 		if (kind == "tri-nucleotide") {
@@ -588,11 +606,16 @@ void compute_domain_probabilities(
 		}
 	}
 
+	string overallOutputFolder = dataFolder;
+	if (!ctx.overall_output_folder.empty()) {
+		overallOutputFolder = ctx.overall_output_folder + "/";
+	}
+
 	string protein_out_path;
 	if (kind == "tri-nucleotide") {
-		protein_out_path = dataFolder + query + "_probability_" + tail + ".csv";
+		protein_out_path = overallOutputFolder + query + "_probability_" + tail + ".csv";
 	} else {
-		protein_out_path = dataFolder + query + "_aa_probability_" + tail + ".csv";
+		protein_out_path = overallOutputFolder + query + "_aa_probability_" + tail + ".csv";
 	}
 	
 	ofstream output_file(protein_out_path);

@@ -1,0 +1,12 @@
+{
+	"kind": "amino-acid",
+	"query": "tigr",
+	"tail": "left",
+	"n_threads": 5,
+	"complete_genome_only": true,
+	"distance_to_mean_suffix": "_amino_acid_distance_to_mean__length_control.csv",
+	"assembly_output_folder": "../data/confounders/length/assembly",
+	"phylum_output_folder": "../data/confounders/length/phylum",
+	"superkingdom_output_folder": "../data/confounders/length/superkingdom",
+	"overall_output_folder": "../data/confounders/length"
+}

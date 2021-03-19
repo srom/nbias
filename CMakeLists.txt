@@ -86,3 +86,8 @@ file(GLOB test_codons_SOURCES "test/codons/*.cpp")
 add_executable(test_codons ${test_codons_SOURCES})
 target_link_libraries(test_codons ${Boost_LIBRARIES})
 add_test(NAME codons COMMAND test_codons)
+
+file(GLOB test_context_SOURCES "test/task/*.cpp")
+add_executable(test_context ${test_context_SOURCES})
+target_link_libraries(test_context ${Boost_LIBRARIES})
+add_test(NAME context COMMAND test_context)
